@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사르디나 아이템 V16 (Layer Fix)</title>
+    <title>사르디나 아이템 V17 (Real Gradient Fold)</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* 1. 기본 설정 */
@@ -16,131 +16,96 @@
         }
 
         /* =========================================
-           ✨ NEW: 3중 레이어 코너 시스템
+           ✨ NEW: 리얼 그라데이션 폴딩 시스템
         ========================================= */
         
         #corner-interaction-wrapper {
             position: fixed;
             top: 0; left: 0;
-            width: 150px; height: 150px; /* 클릭 감지 영역 넉넉하게 */
+            width: 150px; height: 150px;
             z-index: 2000; cursor: pointer;
         }
 
         /* --- Layer 1: The Hole (접혀서 생긴 빈 공간) --- */
-        /* 배경보다 어두운 색으로 처리하여 '파인' 느낌을 줌 */
         .corner-hole {
             position: absolute;
             top: 0; left: 0;
-            z-index: 1; /* 가장 아래 */
-            
+            z-index: 1;
             width: 0; height: 0;
             border-style: solid;
-            
-            /* 초기 크기: 60px */
+            /* 우하향 삼각형 빈 공간 */
             border-width: 60px 60px 0 0;
-            /* 위쪽과 왼쪽은 어두운 색(빈 공간), 나머지는 투명 */
             border-color: #c0c0c0 transparent transparent transparent; 
-            
             transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        
-        /* 열렸을 때: 구멍도 커짐 */
         #corner-interaction-wrapper.is-open .corner-hole {
             border-width: 120px 120px 0 0;
-            border-color: #b0b0b0 transparent transparent transparent; /* 조금 더 깊은 색 */
         }
-
 
         /* --- Layer 2: The Emoji (숨겨진 아이템) --- */
         .hidden-emoji-wrapper {
             position: absolute;
             top: 0; left: 0;
-            
-            /* ✨ 핵심: 초기에는 Hole(1)보다 위, Flap(10)보다 아래 */
             z-index: 5; 
-            
-            /* 초기 위치: 종이 틈새에 숨어있음 (크기 0.5) */
             transform: translate(5px, 5px) rotate(-10deg) scale(0.5);
             opacity: 0.8;
             pointer-events: none;
-            
-            /* z-index 변경에 딜레이를 주어 종이가 다 열린 뒤 튀어나오게 함 */
             transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s linear 0.2s;
         }
-
-        /* 열렸을 때: 이모지가 튀어나옴 */
         #corner-interaction-wrapper.is-open .hidden-emoji-wrapper {
-            /* ✨ 핵심: Flap(10)보다 위로 올라옴! */
             z-index: 20; 
-            
             pointer-events: auto; cursor: pointer; opacity: 1;
-            
-            /* ✨ 크기 및 위치 조정: 
-               scale(0.65) -> 너무 크지 않게 조정 (요청사항 반영)
-               translate(50px, 50px) -> 종이 덮개 밖으로 이동
-            */
             transform: translate(50px, 50px) rotate(10deg) scale(0.65);
-            
-            /* 닫힐 때는 z-index가 즉시 뒤로 숨음 */
             transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s linear 0s;
         }
-
         #hiddenEmoji {
             font-size: 3.5rem;
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); /* 그림자 */
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
             display: block;
         }
         #hiddenEmoji:hover { animation: shake 0.5s ease-in-out infinite; }
 
-
-        /* --- Layer 3: The Flap (접힌 종이 뒷면) --- */
+        /* --- Layer 3: The Flap (접힌 종이 뒷면 - 그라데이션 적용) --- */
         .paper-flap {
             position: absolute;
             top: 0; left: 0;
+            z-index: 10;
             
-            /* ✨ 핵심: 초기에는 이모지(5)를 덮고 있음 */
-            z-index: 10; 
+            /* 직각이등변삼각형의 빗변 길이만큼 정사각형을 만듦 (약 85px) */
+            width: 85px; height: 85px;
             
-            width: 0; height: 0;
-            border-style: solid;
+            /* ✨ 핵심: 그라데이션으로 둥글게 말린 느낌 표현 */
+            /* 시작점(접히는 부분)은 밝게, 끝점(모서리)은 어둡게 */
+            background: linear-gradient(135deg, #e6e6e6 0%, #c4ccd2 100%);
             
-            /* 초기 크기: Hole과 일치 (60px) */
-            /* border-bottom과 border-right 이용 -> 우하향 삼각형 생성 */
-            border-width: 0 60px 60px 0;
-            /* 종이 뒷면 색상 (배경보다 약간 밝거나 다르게) */
-            border-color: transparent #d1d9e0 transparent transparent; 
+            /* ✨ 핵심: clip-path로 우하향 직각삼각형 모양 만들기 */
+            clip-path: polygon(0 0, 100% 0, 0 100%);
             
-            /* 그림자: 종이가 붕 떠있는 느낌 */
-            filter: drop-shadow(3px 3px 4px rgba(0,0,0,0.2));
+            /* 입체감을 위한 그림자 */
+            filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.2));
             
+            /* 커질 때 왼쪽 상단을 기준으로 커지도록 설정 */
+            transform-origin: top left;
             transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            pointer-events: none; /* 클릭은 wrapper가 받음 */
+            pointer-events: none;
         }
-
-        /* 열렸을 때: 덮개가 커짐 */
         #corner-interaction-wrapper.is-open .paper-flap {
-            /* Hole 크기와 일치하게 커짐 */
-            border-width: 0 120px 120px 0;
+            /* 펼쳐졌을 때 크기 (약 170px) */
+            width: 170px; height: 170px;
             filter: drop-shadow(5px 5px 8px rgba(0,0,0,0.3));
         }
-
 
         /* =========================================
            기타 스타일 (유지)
         ========================================= */
         @keyframes shake {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(-10deg); }
-            75% { transform: rotate(10deg); }
-            100% { transform: rotate(0deg); }
+            0% { transform: rotate(0deg); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } 100% { transform: rotate(0deg); }
         }
-        
         .item-container { 
             display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 800px;
             opacity: 0.2; pointer-events: none; margin-top: 50px;
         }
         .item { font-size: 2.5rem; transition: transform 0.1s; filter: grayscale(100%); }
-
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.4); z-index: 3000; justify-content: center; align-items: center;
@@ -185,25 +150,19 @@
             padding: 6px 12px; font-size: 0.8rem; font-weight: 700; transform: scaleX(0.94); border-radius: 0; 
         }
         @keyframes snapIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
 <body>
 
     <div id="corner-interaction-wrapper" onclick="togglePaper()">
-        
         <div class="paper-flap"></div>
-
         <div class="hidden-emoji-wrapper" onclick="onHiddenEmojiClick(event)">
             <span id="hiddenEmoji">❓</span>
         </div>
-
         <div class="corner-hole"></div>
-
     </div>
-
 
     <div style="text-align:center; margin-bottom:10px; color:#666;">
         <p style="font-weight:500; transform:scaleX(0.94);">왼쪽 위 모서리를 확인하세요! 👆</p>
@@ -228,7 +187,7 @@
     </div>
 
     <script>
-        // 1. 아이템 데이터
+        // 아이템 데이터 및 스크립트는 기존과 동일하게 유지
         const itemsData = [
             { title: '낡은 바구니', icon: '🧺', desc: '거친 파도를 넘어 해변에 닿았던 작은 요람. 짠 내 섞인 바다 향기 대신 포근한 햇살 냄새가 배어 있다.' },
             { title: '오렌지 주스 병', icon: '🍊', desc: '숙취에 시달리는 누군가를 위한 해장 음료. \'일이나 하자\'는 무언의 압박이 느껴진다.' },
@@ -252,27 +211,22 @@
             { title: '손때 묻은 사르디나 지도', icon: '🗺️', desc: '행정 구역이 표시된 딱딱한 지도가 아니다. 해변가, 노을이 예쁜 언덕, 단골 바 등 \'함께 거닐던 곳\'에만 잉크로 동그라미가 쳐져 있다.' },
             { title: '철 지난 지역 신문', icon: '📰', desc: '여름 축제를 다룬 1면 기사가 실려 있다. 화려한 불꽃놀이 사진 구석에, 인파를 빠져나가는 두 사람의 뒷모습이 아주 작게 찍혀 있을지도 모른다.' }
         ];
-
         let currentHiddenItem = null;
         const cornerWrapper = document.getElementById('corner-interaction-wrapper');
         const hiddenEmojiSpan = document.getElementById('hiddenEmoji');
-
         function initHiddenItem() {
             const randomIndex = Math.floor(Math.random() * itemsData.length);
             currentHiddenItem = itemsData[randomIndex];
             hiddenEmojiSpan.innerText = currentHiddenItem.icon;
         }
-
         function togglePaper() {
             cornerWrapper.classList.toggle('is-open');
         }
-
         function onHiddenEmojiClick(event) {
             event.stopPropagation(); 
             if (!currentHiddenItem) return;
             openModal(currentHiddenItem.title, currentHiddenItem.icon, currentHiddenItem.desc);
         }
-
         function openModal(title, icon, desc) {
             const modal = document.getElementById('itemModal');
             document.getElementById('modalTitle').innerText = title;
@@ -281,25 +235,17 @@
             document.getElementById('itemCounter').innerText = "🎉 Hidden Item Found! 🎉";
             modal.style.display = 'flex';
         }
-
         function closeModal() {
             document.getElementById('itemModal').style.display = 'none';
             resetPaperState();
         }
-
         function resetPaperState() {
             cornerWrapper.classList.remove('is-open');
-            setTimeout(() => {
-                initHiddenItem();
-            }, 500);
+            setTimeout(() => { initHiddenItem(); }, 500);
         }
-
         function closeModalOutside(event) {
-            if (event.target === document.getElementById('itemModal')) {
-                closeModal();
-            }
+            if (event.target === document.getElementById('itemModal')) { closeModal(); }
         }
-
         window.onload = function() {
             initHiddenItem();
             const bgList = document.getElementById('backgroundList');
