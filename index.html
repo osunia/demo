@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사르디나 아이템 V20 (Perfect Fit)</title>
+    <title>사르디나 아이템 V21 (Static Pop & Fix)</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* 1. 기본 설정 */
@@ -16,13 +16,13 @@
         }
 
         /* =========================================
-           ✨ V20: 정밀 맞춤 & 크기 축소 시스템
+           ✨ V21: 위치 정밀 조정 & 제자리 팝업
         ========================================= */
         
         #corner-interaction-wrapper {
             position: fixed;
             top: 0; left: 0;
-            width: 120px; height: 120px; /* 클릭 영역 조정 */
+            width: 120px; height: 120px;
             z-index: 2000; cursor: pointer;
         }
 
@@ -31,35 +31,29 @@
             position: absolute;
             top: 0; left: 0;
             z-index: 1;
-            
             width: 0; height: 0;
             border-style: solid;
-            
-            /* 초기 크기: 60px */
             border-width: 60px 60px 0 0;
-            
-            /* 구멍 색상 (#c0c0c0) */
             border-color: #c0c0c0 transparent transparent transparent; 
-            
-            /* 덮개와 완벽한 동기화를 위한 트랜지션 설정 */
             transition: border-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        
         #corner-interaction-wrapper.is-open .corner-hole {
-            /* ✨ 핵심 수정: 130px -> 95px (0.7배 축소) */
-            border-width: 95px 95px 0 0;
-            
+            border-width: 95px 95px 0 0; /* 0.7배 유지 */
             border-color: #b0b0b0; 
         }
 
         /* --- Layer 2: The Emoji (숨겨진 아이템) --- */
         .hidden-emoji-wrapper {
             position: absolute;
-            top: 5px; left: 5px;
+            
+            /* ✨ 핵심 수정 1: 위치를 더 안쪽으로 당김 (하단 노출 방지) */
+            top: -5px; left: -5px; 
+            
             z-index: 5; 
             
-            /* 초기 상태 */
-            transform: scale(0.5) rotate(-10deg);
+            /* 초기 상태: 크기 0.5, 회전 -15도 */
+            transform: scale(0.5) rotate(-15deg);
+            
             opacity: 0.8;
             pointer-events: none;
             
@@ -67,23 +61,22 @@
         }
 
         #corner-interaction-wrapper.is-open .hidden-emoji-wrapper {
-            z-index: 20; 
+            z-index: 20; /* 맨 위로 팝업 */
             pointer-events: auto; cursor: pointer; opacity: 1;
             
-            /* ✨ 크기 축소에 맞춰 튀어나오는 위치도 조정 (60px -> 45px) */
-            transform: translate(45px, 45px) rotate(0deg) scale(0.7); 
+            /* ✨ 핵심 수정 2: Translate(이동) 제거! */
+            /* 그 자리에서 회전을 풀고(0deg) 크기만 키움(0.7) */
+            transform: scale(0.7) rotate(0deg);
             
             transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s linear 0s;
         }
 
         #hiddenEmoji {
             font-size: 3.5rem;
-            /* 그림자 유지 */
             filter: drop-shadow(0 8px 15px rgba(0,0,0,0.3));
             display: block;
-            /* ✨ 핵심 수정: 흔들림(Shake) 애니메이션 제거됨 */
+            /* 흔들림 제거됨 */
         }
-        /* hover 시 animation 제거 */
 
 
         /* --- Layer 3: The Flap (접힌 종이 덮개) --- */
@@ -91,39 +84,31 @@
             position: absolute;
             top: 0; left: 0;
             z-index: 10;
-            
-            /* 초기 크기: Hole과 1:1 매칭 (60px) */
             width: 60px; height: 60px;
             
-            /* 우하향 삼각형 (뒷면) */
+            /* 우하향 삼각형 */
             clip-path: polygon(100% 0, 0 100%, 100% 100%);
             
-            /* 둥근 말림 그라데이션 */
+            /* 그라데이션 */
             background: linear-gradient(135deg, #ffffff 15%, #d1d9e0 100%);
             
             filter: drop-shadow(-2px -2px 4px rgba(0,0,0,0.15));
             
-            /* 트랜지션 속성을 명시하여 hole과 속도 차이 제거 */
             transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
                         height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
             
             pointer-events: none;
-            
-            /* 팁을 살짝 둥글게 (선택 사항, 빈틈 원인이라면 제거 가능하나 0.7배에선 괜찮음) */
             border-bottom-right-radius: 4px; 
         }
 
         #corner-interaction-wrapper.is-open .paper-flap {
-            /* ✨ 핵심 수정: 130px -> 95px (0.7배 축소) */
-            /* Hole의 border-width와 픽셀 단위까지 일치시켜 빈틈 제거 */
-            width: 95px; height: 95px;
-            
+            width: 95px; height: 95px; /* 0.7배 유지 */
             filter: drop-shadow(-4px -4px 8px rgba(0,0,0,0.25));
         }
 
 
         /* =========================================
-           기타 스타일 (유지)
+           기타 스타일 (기존 유지)
         ========================================= */
         .item-container { 
             display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 800px;
@@ -211,7 +196,7 @@
     </div>
 
     <script>
-        // 데이터 및 로직은 기존과 동일
+        // JS는 V20과 동일 (흔들림 제거됨)
         const itemsData = [
             { title: '낡은 바구니', icon: '🧺', desc: '거친 파도를 넘어 해변에 닿았던 작은 요람. 짠 내 섞인 바다 향기 대신 포근한 햇살 냄새가 배어 있다.' },
             { title: '오렌지 주스 병', icon: '🍊', desc: '숙취에 시달리는 누군가를 위한 해장 음료. \'일이나 하자\'는 무언의 압박이 느껴진다.' },
