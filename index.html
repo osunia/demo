@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>아이템 모달 프로토타입</title>
+    <title>아이템 모달 프로토타입 V2</title>
     <style>
-        /* 1. 기본 설정 (폰트 및 리셋) */
+        /* 1. 기본 설정 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Suit', 'Noto Sans KR', sans-serif;
@@ -17,37 +17,24 @@
             flex-direction: column;
         }
 
-        /* 2. 아이템 리스트 (빈티지 스타일 이모지) */
-        .item-container {
-            display: flex;
-            gap: 20px;
-        }
-
+        /* 2. 아이템 리스트 (빈티지 스타일) */
+        .item-container { display: flex; gap: 20px; }
         .item {
-            font-size: 3rem; /* 이모지 크기 */
+            font-size: 3rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            
-            /* ✨ 핵심: 알록달록한 색을 빼고 투명도 조절 */
             filter: grayscale(100%);
-            opacity: 0.5; 
+            opacity: 0.5;
         }
+        .item:hover { opacity: 1; transform: scale(1.1); }
 
-        .item:hover {
-            /* 마우스 올리면 살짝 선명해지는 효과 */
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        /* 3. 모달 창 스타일 (팝업) */
+        /* 3. 모달 레이아웃 */
         .modal-overlay {
-            display: none; /* 기본적으로 숨김 */
+            display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* 배경 어둡게 */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -55,82 +42,112 @@
 
         .modal-box {
             background-color: #fff;
-            width: 300px; /* 모달 너비: 너무 크지 않게 */
+            width: 320px;
             max-width: 90%;
             border-radius: 4px;
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            position: relative;
             animation: fadeIn 0.3s ease-out;
         }
 
-        /* 모달 헤더 (짙은 회색 부분) */
+        /* 헤더 스타일 */
         .modal-header {
-            background-color: #4a4a4a; /* 짙은 회색 */
+            background-color: #4a4a4a;
             color: #fff;
-            padding: 12px 15px;
+            padding: 10px 15px;
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid #333;
         }
 
-        /* 닫기 버튼 (붉은색 X) */
+        /* 닫기 버튼: 외곽선 붉은색, 내부 흰색 */
         .close-btn {
-            color: #ff6b6b; /* 붉은색 */
+            width: 24px;
+            height: 24px;
+            background-color: #fff;
+            border: 2px solid #ff6b6b;
+            color: #ff6b6b;
             font-weight: bold;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             cursor: pointer;
-            line-height: 1;
+            border-radius: 4px; /* 살짝 둥글게 */
+            line-height: 0; /* X 정중앙 정렬 보정 */
         }
-        .close-btn:hover { color: #ff0000; }
+        .close-btn:hover {
+            background-color: #ff6b6b;
+            color: #fff;
+        }
 
-        /* 모달 내용 (옅은 회색 부분) */
+        /* 바디 스타일 */
         .modal-body {
-            background-color: #f9f9f9; /* 옅은 회색 */
-            padding: 20px;
+            background-color: #f9f9f9;
+            padding: 30px 20px 20px 20px; /* 상단 여백 확보 */
             text-align: center;
-            position: relative;
         }
 
-        /* 이미지 속 빗금 무늬 장식 효과 (CSS로 구현) */
-        .decoration-lines {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 50px;
+        /* ✨ 아이콘 박스 래퍼 (위치 잡기용) */
+        .icon-wrapper {
+            position: relative;
+            width: 80px;
             height: 80px;
-            background: repeating-linear-gradient(
-                45deg,
-                #ddd,
-                #ddd 2px,
-                transparent 2px,
-                transparent 6px
-            );
-            z-index: 0;
+            margin: 0 auto 20px auto; /* 중앙 정렬 */
+        }
+
+        /* 아이콘 뒷배경 박스 (진한 회색 정사각형) */
+        .icon-box {
+            width: 100%;
+            height: 100%;
+            background-color: #333; /* 진한 회색 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 6px;
+            position: relative;
+            z-index: 2; /* 빗금보다 위에 오도록 */
+            box-shadow: 2px 4px 8px rgba(0,0,0,0.2);
+            border: 1px solid #555; /* 미세한 테두리 */
         }
 
         .modal-icon {
-            font-size: 4rem;
-            margin-bottom: 15px;
-            position: relative;
-            z-index: 1;
-            /* 모달 안의 아이콘은 컬러로 보여줄지, 흑백으로 할지 선택 가능 (여기선 컬러 유지) */
-            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));
+            font-size: 3rem;
+            /* 이모지가 박스 안에 예쁘게 들어가도록 */
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); 
+        }
+
+        /* 빗금 장식 (왼쪽 아래, 걸치게) */
+        .decoration-lines {
+            position: absolute;
+            bottom: -10px; /* 박스보다 아래로 */
+            left: -15px;   /* 박스보다 왼쪽으로 */
+            width: 60px;
+            height: 60px;
+            z-index: 1; /* 박스 뒤로 */
+            
+            /* 세로 빗금 패턴 생성 */
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 4px,
+                #ccc 4px, /* 빗금 색상 */
+                #ccc 6px
+            );
         }
 
         .modal-desc {
             font-size: 0.95rem;
             color: #333;
             line-height: 1.6;
-            word-break: keep-all; /* 한글 줄바꿈 최적화 */
+            word-break: keep-all;
         }
 
-        /* 애니메이션 효과 */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
+            from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
@@ -142,10 +159,11 @@
     </div>
 
     <div class="item-container">
-        <div class="item" onclick="openModal('💍 [샴페인 골드 반지]', '💍', '푸른 보석이 박힌 약속의 증표.<br>장인의 목숨(?)을 담보로 축제 전날 완성되었다는 소문이 있다.')">
+        <div class="item" onclick="openModal('샴페인 골드 반지', '💍', '푸른 보석이 박힌 약속의 증표.<br>장인의 목숨(?)을 담보로 축제 전날 완성되었다는 소문이 있다.')">
             💍
         </div>
-        <div class="item" onclick="openModal('🎈 [사르디나 : 물풍선]', '🎈', '얇은 고무풍선에 물을 채운 장난감.<br>다양한 놀이에 활용할 수 있다.<br>특히 칼리치아는 사르디나 여름 축제 우승 후보 지역이다.')">
+        
+        <div class="item" onclick="openModal('사르디나 : 물풍선', '🎈', '얇은 고무풍선에 물을 채운 장난감.<br>다양한 놀이에 활용할 수 있다.<br>특히 칼리치아는 사르디나 여름 축제 우승 후보 지역이다.')">
             🎈
         </div>
     </div>
@@ -154,37 +172,32 @@
         <div class="modal-box">
             <div class="modal-header">
                 <span id="modalTitle">아이템 이름</span>
-                <span class="close-btn" onclick="closeModal()">&times;</span>
+                <div class="close-btn" onclick="closeModal()">&times;</div>
             </div>
             <div class="modal-body">
-                <div class="decoration-lines"></div> <div id="modalIcon" class="modal-icon">💍</div>
-                <div id="modalDesc" class="modal-desc">
-                    설명 내용이 들어갑니다.
+                <div class="icon-wrapper">
+                    <div class="decoration-lines"></div> <div class="icon-box">
+                        <span id="modalIcon" class="modal-icon">💍</span>
+                    </div>
                 </div>
+                <div id="modalDesc" class="modal-desc">설명 내용</div>
             </div>
-            </div>
+        </div>
     </div>
 
     <script>
-        // 1. 모달 열기 함수 (데이터를 받아서 내용을 바꿔치기 함)
         function openModal(title, icon, desc) {
             const modal = document.getElementById('itemModal');
-            
-            // 내용 주입
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalIcon').innerText = icon;
-            document.getElementById('modalDesc').innerHTML = desc; // HTML 태그(<br>) 허용
-
-            // 모달 보이기 (Flex로 설정하여 중앙 정렬 유지)
+            document.getElementById('modalDesc').innerHTML = desc;
             modal.style.display = 'flex';
         }
 
-        // 2. 모달 닫기 함수
         function closeModal() {
             document.getElementById('itemModal').style.display = 'none';
         }
 
-        // 3. 모달 바깥 배경 클릭 시 닫기
         function closeModalOutside(event) {
             if (event.target === document.getElementById('itemModal')) {
                 closeModal();
@@ -193,4 +206,3 @@
     </script>
 </body>
 </html>
-
