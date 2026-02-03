@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아이템 모달 프로토타입</title>
+    <style>
+        /* 1. 기본 설정 (폰트 및 리셋) */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Suit', 'Noto Sans KR', sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        /* 2. 아이템 리스트 (빈티지 스타일 이모지) */
+        .item-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .item {
+            font-size: 3rem; /* 이모지 크기 */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            
+            /* ✨ 핵심: 알록달록한 색을 빼고 투명도 조절 */
+            filter: grayscale(100%);
+            opacity: 0.5; 
+        }
+
+        .item:hover {
+            /* 마우스 올리면 살짝 선명해지는 효과 */
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* 3. 모달 창 스타일 (팝업) */
+        .modal-overlay {
+            display: none; /* 기본적으로 숨김 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* 배경 어둡게 */
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background-color: #fff;
+            width: 300px; /* 모달 너비: 너무 크지 않게 */
+            max-width: 90%;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* 모달 헤더 (짙은 회색 부분) */
+        .modal-header {
+            background-color: #4a4a4a; /* 짙은 회색 */
+            color: #fff;
+            padding: 12px 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+        }
+
+        /* 닫기 버튼 (붉은색 X) */
+        .close-btn {
+            color: #ff6b6b; /* 붉은색 */
+            font-weight: bold;
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .close-btn:hover { color: #ff0000; }
+
+        /* 모달 내용 (옅은 회색 부분) */
+        .modal-body {
+            background-color: #f9f9f9; /* 옅은 회색 */
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        /* 이미지 속 빗금 무늬 장식 효과 (CSS로 구현) */
+        .decoration-lines {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 80px;
+            background: repeating-linear-gradient(
+                45deg,
+                #ddd,
+                #ddd 2px,
+                transparent 2px,
+                transparent 6px
+            );
+            z-index: 0;
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+            /* 모달 안의 아이콘은 컬러로 보여줄지, 흑백으로 할지 선택 가능 (여기선 컬러 유지) */
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));
+        }
+
+        .modal-desc {
+            font-size: 0.95rem;
+            color: #333;
+            line-height: 1.6;
+            word-break: keep-all; /* 한글 줄바꿈 최적화 */
+        }
+
+        /* 애니메이션 효과 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div style="text-align:center; margin-bottom:20px; color:#666;">
+        <p>아이템을 눌러보세요 👇</p>
+    </div>
+
+    <div class="item-container">
+        <div class="item" onclick="openModal('💍 [샴페인 골드 반지]', '💍', '푸른 보석이 박힌 약속의 증표.<br>장인의 목숨(?)을 담보로 축제 전날 완성되었다는 소문이 있다.')">
+            💍
+        </div>
+        <div class="item" onclick="openModal('🎈 [사르디나 : 물풍선]', '🎈', '얇은 고무풍선에 물을 채운 장난감.<br>다양한 놀이에 활용할 수 있다.<br>특히 칼리치아는 사르디나 여름 축제 우승 후보 지역이다.')">
+            🎈
+        </div>
+    </div>
+
+    <div id="itemModal" class="modal-overlay" onclick="closeModalOutside(event)">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span id="modalTitle">아이템 이름</span>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="decoration-lines"></div> <div id="modalIcon" class="modal-icon">💍</div>
+                <div id="modalDesc" class="modal-desc">
+                    설명 내용이 들어갑니다.
+                </div>
+            </div>
+            </div>
+    </div>
+
+    <script>
+        // 1. 모달 열기 함수 (데이터를 받아서 내용을 바꿔치기 함)
+        function openModal(title, icon, desc) {
+            const modal = document.getElementById('itemModal');
+            
+            // 내용 주입
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalIcon').innerText = icon;
+            document.getElementById('modalDesc').innerHTML = desc; // HTML 태그(<br>) 허용
+
+            // 모달 보이기 (Flex로 설정하여 중앙 정렬 유지)
+            modal.style.display = 'flex';
+        }
+
+        // 2. 모달 닫기 함수
+        function closeModal() {
+            document.getElementById('itemModal').style.display = 'none';
+        }
+
+        // 3. 모달 바깥 배경 클릭 시 닫기
+        function closeModalOutside(event) {
+            if (event.target === document.getElementById('itemModal')) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
+
