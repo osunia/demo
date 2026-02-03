@@ -3,95 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사르디나 아이템 V13 (Real Fold)</title>
+    <title>사르디나 아이템 V14 (Real Curl & Pop)</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* 1. 기본 설정 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            /* 배경색을 페이지 종이 색상과 맞춰 자연스럽게 */
-            background-color: #e0e0e0; 
+            background-color: #e0e0e0; /* 페이지 배경색 */
             display: flex; justify-content: center; align-items: center; min-height: 100vh;
             flex-direction: column; padding: 50px 20px; overflow-x: hidden;
         }
 
         /* =========================================
-           ✨ NEW: 안으로 접히는 종이 귀퉁이 효과
+           ✨ NEW: 리얼하게 말리는 종이 귀퉁이와 팝아웃 이모지
         ========================================= */
-        /* 컨테이너: 실제 페이지의 귀퉁이 영역 */
-        #folded-corner-container {
+        
+        /* 1) 전체 인터랙션 래퍼 (위치 고정 역할) */
+        #corner-interaction-wrapper {
             position: fixed;
-            top: 0;
-            left: 0;
-            /* 초기 크기: 작게 접혀있음 */
-            width: 60px; 
-            height: 60px;
+            top: 0; left: 0;
+            width: 100px; height: 100px; /* 클릭 영역 */
             z-index: 2000; cursor: pointer;
-            /* 핵심: 이 영역을 벗어나는 건 잘라냄 (안으로 접힌 느낌) */
-            overflow: hidden; 
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-             /* 컨테이너 자체에 약한 그림자를 주어 종이가 떠있는 느낌 */
-            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.1));
+            /* overflow: hidden을 제거하여 이모지가 밖으로 나올 수 있게 함 */
         }
 
-        /* 열렸을 때: 컨테이너 영역이 커짐 */
-        #folded-corner-container.is-open {
-            width: 100px;
-            height: 100px;
-        }
-
-        /* 1) 접힌 뒷면 종이 (The Folded Back) */
-        .paper-fold {
-            position: absolute;
-            top: 0;
-            right: 0; /* 우측 상단을 기준으로 배치 */
-            width: 0;
-            height: 0;
-            border-style: solid;
-            /* 초기 접힌 크기: 컨테이너 크기와 맞춤 (60px) */
-            border-width: 0 60px 60px 0;
-            /* 색상 트릭: 오른쪽(뒷면)만 색상을 주고 나머지는 투명 */
-            /* #c4ccd2: 종이 뒷면 색상 (약간 어두운 회색) */
-            border-color: transparent #c4ccd2 transparent transparent;
-            
-            /* ★ 핵심: 접힌 면 아래로 지는 그림자 (입체감) ★ */
-            box-shadow: -4px 4px 8px rgba(0,0,0,0.2);
-            
-            z-index: 3; /* 이모지보다 위에 */
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        /* 열렸을 때: 접힌 면도 같이 커짐 */
-        #folded-corner-container.is-open .paper-fold {
-            border-width: 0 100px 100px 0; /* 100px로 커짐 */
-            box-shadow: -6px 6px 12px rgba(0,0,0,0.3); /* 그림자도 진해짐 */
-        }
-
-
-        /* 2) 숨겨진 이모지 래퍼 */
+        /* 2) 숨겨진 이모지 (처음엔 뒤에, 나중엔 앞으로) */
         .hidden-emoji-wrapper {
             position: absolute;
-            top: 0; left: 0; z-index: 2;
-            /* 초기 상태: 접힌 틈새로 살짝만 보이게 위치 및 회전 */
-            transform: translate(5px, 5px) rotate(-30deg) scale(0.8);
-            opacity: 0.6;
-            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            pointer-events: none;
+            top: 10px; left: 10px;
+            /* ✨ 핵심: 처음엔 종이(z-index:5)보다 낮게 */
+            z-index: 1; 
+            
+            /* 틈새로 살짝 보이게 위치 및 회전 */
+            transform: translate(0px, 0px) rotate(-20deg) scale(0.8);
+            opacity: 0.7;
+            /* z-index 변경에 딜레이를 주어 자연스럽게 튀어나오게 함 */
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s, z-index 0s linear 0.2s;
+            pointer-events: none; /* 닫혔을 땐 클릭 방지 */
         }
 
-        /* 이모지가 밖으로 나왔을 때 (.is-open 상태) */
-        #folded-corner-container.is-open .hidden-emoji-wrapper {
+        /* 열렸을 때: 이모지가 튀어나옴 */
+        #corner-interaction-wrapper.is-open .hidden-emoji-wrapper {
+            /* ✨ 핵심: 종이보다 높게 올라와서 덮어씀 */
+            z-index: 10; 
+            
             pointer-events: auto; opacity: 1; cursor: pointer;
-            /* ✨ 크기 조절 포인트: scale() 값을 수정하세요.
-               현재: scale(0.6) -> 초기 요청 대비 절반 수준
-            */
-            transform: translate(50px, 50px) rotate(0deg) scale(0.6);
+            /* 밖으로 확 튀어나오며 커짐 */
+            transform: translate(50px, 50px) rotate(0deg) scale(1.2);
+            /* 닫힐 땐 z-index가 바로 뒤로 가도록 딜레이 제거 */
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s, z-index 0s linear 0s;
         }
         
         #hiddenEmoji {
             font-size: 3.5rem;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3)); /* 그림자 강화 */
+            display: block;
         }
         #hiddenEmoji:hover { animation: shake 0.5s ease-in-out infinite; }
         @keyframes shake {
@@ -101,8 +68,51 @@
         }
 
 
+        /* 3) 말리는 종이 효과 (Curl Effect) */
+        /* 종이 모양을 잡아주는 컨테이너 (넘치는 부분 잘라냄) */
+        .curl-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 60px; height: 60px; /* 초기 크기 */
+            overflow: hidden; /* 핵심 */
+            z-index: 5; /* 이모지 초기 상태보다 높음 */
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            /* 컨테이너 자체의 그림자 (종이가 페이지에서 뜬 느낌) */
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.1));
+        }
+        
+        #corner-interaction-wrapper.is-open .curl-container {
+            width: 110px; height: 110px; /* 열리면 커짐 */
+        }
+
+        /* 실제 말려있는 종이 뒷면 그래픽 */
+        .paper-curl {
+            position: absolute;
+            /* 컨테이너 바깥으로 빼서 회전시켜 삼각형 모양을 만듦 */
+            top: -40px; left: -40px;
+            width: 80px; height: 80px;
+            
+            /* ✨ 말린 느낌을 위한 그라데이션 배경 */
+            background: linear-gradient(135deg, #d0d8e0 0%, #aab7c0 100%);
+            
+            /* 45도 회전시켜 다이아몬드 모양으로 */
+            transform: rotate(45deg);
+            
+            /* 말린 부분 아래로 지는 부드러운 그림자 */
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        #corner-interaction-wrapper.is-open .paper-curl {
+             /* 열리면 더 큰 다이아몬드가 되어 더 많이 말린 것처럼 보임 */
+             top: -60px; left: -60px;
+             width: 140px; height: 140px;
+             box-shadow: 8px 8px 15px rgba(0,0,0,0.3); /* 그림자 진해짐 */
+        }
+
+
         /* =========================================
-           기존 스타일 유지 (배경 리스트 및 모달)
+           기존 스타일 유지
         ========================================= */
         .item-container { 
             display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 800px;
@@ -112,7 +122,7 @@
             font-size: 2.5rem; transition: transform 0.1s; filter: grayscale(100%);
         }
 
-        /* 모달 스타일 (이전 버전과 동일) */
+        /* 모달 스타일 (그대로 유지) */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.4); z-index: 3000; justify-content: center; align-items: center;
@@ -164,20 +174,24 @@
 </head>
 <body>
 
-    <div id="folded-corner-container" onclick="togglePaper()">
+    <div id="corner-interaction-wrapper" onclick="togglePaper()">
+        
         <div class="hidden-emoji-wrapper" onclick="onHiddenEmojiClick(event)">
             <span id="hiddenEmoji">❓</span>
         </div>
-        <div class="paper-fold"></div>
+
+        <div class="curl-container">
+            <div class="paper-curl"></div>
+        </div>
+
     </div>
 
 
     <div style="text-align:center; margin-bottom:10px; color:#666;">
-        <p style="font-weight:500; transform:scaleX(0.94);">왼쪽 위 모서리를 확인해보세요! 👆</p>
+        <p style="font-weight:500; transform:scaleX(0.94);">왼쪽 위 모서리를 당겨보세요! 👆</p>
     </div>
 
     <div class="item-container" id="backgroundList"></div>
-
 
     <div id="itemModal" class="modal-overlay" onclick="closeModalOutside(event)">
         <div class="modal-frame">
@@ -190,13 +204,13 @@
                     <span id="modalIcon" class="modal-icon"></span>
                 </div>
                 <div id="modalDesc" class="modal-desc"></div>
-                <div id="itemCounter" class="counter-box">? / ? Hidden Item</div>
+                <div id="itemCounter" class="counter-box">Hidden Item</div>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. 아이템 데이터 배열
+        // 1. 아이템 데이터
         const itemsData = [
             { title: '낡은 바구니', icon: '🧺', desc: '거친 파도를 넘어 해변에 닿았던 작은 요람. 짠 내 섞인 바다 향기 대신 포근한 햇살 냄새가 배어 있다.' },
             { title: '오렌지 주스 병', icon: '🍊', desc: '숙취에 시달리는 누군가를 위한 해장 음료. \'일이나 하자\'는 무언의 압박이 느껴진다.' },
@@ -222,51 +236,50 @@
         ];
 
         let currentHiddenItem = null;
-        const cornerContainer = document.getElementById('folded-corner-container');
+        const cornerWrapper = document.getElementById('corner-interaction-wrapper');
         const hiddenEmojiSpan = document.getElementById('hiddenEmoji');
 
-        // 2. 초기화 및 랜덤 아이템 세팅
+        // 초기화
         function initHiddenItem() {
             const randomIndex = Math.floor(Math.random() * itemsData.length);
             currentHiddenItem = itemsData[randomIndex];
             hiddenEmojiSpan.innerText = currentHiddenItem.icon;
         }
 
-        // 3. 종이 토글
+        // 종이 토글
         function togglePaper() {
-            cornerContainer.classList.toggle('is-open');
+            cornerWrapper.classList.toggle('is-open');
         }
 
-        // 4. 숨겨진 이모지 클릭
+        // 이모지 클릭
         function onHiddenEmojiClick(event) {
-            event.stopPropagation();
+            event.stopPropagation(); // 종이 닫힘 방지
             if (!currentHiddenItem) return;
             openModal(currentHiddenItem.title, currentHiddenItem.icon, currentHiddenItem.desc);
         }
 
-        // 5. 모달 열기 (Hidden 전용)
+        // 모달 열기
         function openModal(title, icon, desc) {
             const modal = document.getElementById('itemModal');
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalIcon').innerText = icon;
             document.getElementById('modalDesc').innerText = desc;
-            // 숨겨진 아이템은 카운터 대신 특별한 메시지 표시
             document.getElementById('itemCounter').innerText = "🎉 Hidden Item Found! 🎉";
             modal.style.display = 'flex';
         }
 
-        // 6. 모달 닫기 및 리셋
+        // 모달 닫기 및 리셋
         function closeModal() {
             document.getElementById('itemModal').style.display = 'none';
             resetPaperState();
         }
 
-        // 7. 종이 리셋
+        // 리셋 로직
         function resetPaperState() {
-            cornerContainer.classList.remove('is-open');
+            cornerWrapper.classList.remove('is-open');
             setTimeout(() => {
                 initHiddenItem();
-            }, 400);
+            }, 500); // 애니메이션 시간과 맞춤
         }
 
         function closeModalOutside(event) {
@@ -277,7 +290,7 @@
 
         window.onload = function() {
             initHiddenItem();
-            // 배경 리스트 생성 (데모용)
+            // 배경 리스트 생성
             const bgList = document.getElementById('backgroundList');
             itemsData.forEach(item => {
                 const div = document.createElement('div');
