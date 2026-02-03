@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>아이템 모달 V7 Final</title>
+    <title>아이템 모달 V8 Final</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* 1. 기본 설정 */
@@ -39,22 +39,18 @@
             align-items: center;
         }
 
-        /* 외부 프레임 (완전 사각, 플랫) */
+        /* 외부 프레임 */
         .modal-frame {
-            background-color: #b6c2cc; /* 진한 쿨 그레이 */
+            /* ✨ 메인 컬러: 진한 청회색 */
+            background-color: #b6c2cc; 
             border-radius: 0; 
             box-shadow: none;
-            
             width: 280px; 
-            min-height: 400px; 
-            
+            min-height: 420px; /* 카운터 공간 확보를 위해 살짝 늘림 */
             position: relative;
             display: flex;
             flex-direction: column;
-            
-            /* 상단 헤더 공간 */
             padding: 55px 12px 12px 12px; 
-            
             animation: snapIn 0.2s cubic-bezier(0, 1, 0.5, 1);
         }
 
@@ -66,22 +62,17 @@
             height: 55px;
             display: flex;
             align-items: center; 
-            justify-content: flex-start; /* 왼쪽 정렬 */
+            justify-content: flex-start;
             padding-left: 15px; 
         }
 
-        /* 제목 텍스트 (Medium 굵기) */
+        /* 제목 텍스트 */
         #modalTitle {
             color: #000;
             font-size: 1.1rem;
-            
-            /* ✨ 굵기 조절: Bold(700) -> Medium(500) */
             font-weight: 500; 
-            
-            /* 장평 약간 좁게 유지 */
             transform: scaleX(0.94); 
             transform-origin: left center;
-            
             letter-spacing: -0.5px;
             white-space: nowrap;
         }
@@ -91,13 +82,11 @@
             position: absolute;
             right: 6px; 
             top: 6px;
-            
             font-family: Arial, sans-serif;
             font-size: 2.2rem;
-            font-weight: 900; /* X는 여전히 잘 보여야 하므로 굵게 유지 */
+            font-weight: 900; 
             line-height: 1;
             cursor: pointer;
-            
             color: #fff;
             -webkit-text-stroke: 3px #ff4d4d;
             paint-order: stroke fill;
@@ -112,20 +101,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 30px 20px;
+            padding: 30px 20px 20px 20px; /* 하단 패딩 조정 */
             border: 2px solid #aab7c0;
         }
 
-        /* 이모지 박스 (테두리 제거) */
+        /* ✨ 이모지 박스 (배경색 변경: 외부 프레임과 동일) */
         .icon-box {
             width: 80px;
             height: 80px;
-            background-color: #eceff1;
-            border-radius: 0;
             
-            /* ✨ 테두리 제거 */
+            /* 외부 프레임 색상과 일치 (#b6c2cc) */
+            background-color: #b6c2cc; 
+            
             border: none; 
-            
             display: flex;
             justify-content: center;
             align-items: center;
@@ -137,23 +125,35 @@
             filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.1));
         }
 
-        /* 설명 텍스트 (Medium 굵기, 자연스러운 줄바꿈) */
+        /* 설명 텍스트 */
         .modal-desc {
             font-size: 0.95rem;
             color: #333;
             line-height: 1.6;
-            
-            /* ✨ 굵기 조절: Medium(500) */
             font-weight: 500; 
-            
-            /* ✨ 줄바꿈 설정: 단어 단위로 끊기 (한글 최적화) */
             word-break: keep-all; 
-            
-            /* 장평 유지 */
             transform: scaleX(0.94); 
             transform-origin: top center;
-            
             text-align: center;
+            margin-bottom: 20px; /* 카운터 박스와의 여백 */
+        }
+
+        /* ✨ 순번 카운터 박스 (n / m 번째 아이템) */
+        .counter-box {
+            /* 아래로 밀어내기 위해 margin-top auto 사용 */
+            margin-top: auto; 
+            
+            background-color: #b6c2cc; /* 프레임 색상 */
+            color: #fff; /* 흰색 글씨 */
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: 700; /* 잘 보이게 살짝 굵게 */
+            
+            /* 장평 및 폰트 스타일 통일 */
+            transform: scaleX(0.94); 
+            
+            /* 디자인 요소 */
+            border-radius: 0; /* 각지게 */
         }
 
         @keyframes snapIn {
@@ -169,15 +169,15 @@
     </div>
 
     <div class="item-container">
-        <div class="item" onclick="openModal('샴페인 골드 반지', '💍', '푸른 보석이 박힌 약속의 증표. 장인의 목숨(?)을 담보로 축제 전날 완성되었다는 소문이 있다.')">
+        <div class="item" onclick="openModal(this, '샴페인 골드 반지', '💍', '푸른 보석이 박힌 약속의 증표. 장인의 목숨(?)을 담보로 축제 전날 완성되었다는 소문이 있다.')">
             💍
         </div>
         
-        <div class="item" onclick="openModal('사르디나 : 물풍선', '🎈', '얇은 고무풍선에 물을 채운 장난감. 다양한 놀이에 활용할 수 있다. 특히 칼리치아는 사르디나 여름 축제 우승 후보 지역이다.')">
+        <div class="item" onclick="openModal(this, '사르디나 : 물풍선', '🎈', '얇은 고무풍선에 물을 채운 장난감. 다양한 놀이에 활용할 수 있다. 특히 칼리치아는 사르디나 여름 축제 우승 후보 지역이다.')">
             🎈
         </div>
 
-        <div class="item" onclick="openModal('오래된 지도', '🗺️', '알 수 없는 섬의 위치가 그려진 지도. 잉크가 심하게 번져 있어 자세한 내용은 도저히 알아보기 힘들다.')">
+        <div class="item" onclick="openModal(this, '오래된 지도', '🗺️', '알 수 없는 섬의 위치가 그려진 지도. 잉크가 심하게 번져 있어 자세한 내용은 도저히 알아보기 힘들다.')">
             🗺️
         </div>
     </div>
@@ -192,17 +192,36 @@
                 <div class="icon-box">
                     <span id="modalIcon" class="modal-icon"></span>
                 </div>
+                
                 <div id="modalDesc" class="modal-desc"></div>
+                
+                <div id="itemCounter" class="counter-box">0 / 0 번째 아이템</div>
             </div>
         </div>
     </div>
 
     <script>
-        function openModal(title, icon, desc) {
+        // ✨ 첫 번째 인자로 element(this)를 받습니다.
+        function openModal(element, title, icon, desc) {
             const modal = document.getElementById('itemModal');
+            
+            // 1. 데이터 채우기
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalIcon').innerText = icon;
-            document.getElementById('modalDesc').innerText = desc; // innerHTML 대신 innerText 사용해도 무방 (자동 줄바꿈 됨)
+            document.getElementById('modalDesc').innerText = desc;
+
+            // 2. 순서 자동 계산 로직 🚀
+            // 전체 아이템 리스트를 가져옵니다.
+            const allItems = document.querySelectorAll('.item-container .item');
+            const totalCount = allItems.length; // 전체 개수 (m)
+            
+            // 클릭한 요소(element)가 리스트에서 몇 번째인지 찾습니다. (0부터 시작하므로 +1)
+            // Array.from()을 사용해 NodeList를 배열로 변환 후 인덱스 찾기
+            const currentIndex = Array.from(allItems).indexOf(element) + 1; // 현재 순번 (n)
+
+            // 3. 카운터 텍스트 업데이트
+            document.getElementById('itemCounter').innerText = `${currentIndex} / ${totalCount} 번째 아이템`;
+
             modal.style.display = 'flex';
         }
 
