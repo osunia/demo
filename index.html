@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>아이템 모달 V8 Final</title>
+    <title>아이템 모달 V9 Gradient</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* 1. 기본 설정 */
@@ -39,14 +39,15 @@
             align-items: center;
         }
 
-        /* 외부 프레임 */
+        /* 외부 프레임 (그라데이션 적용) */
         .modal-frame {
-            /* ✨ 메인 컬러: 진한 청회색 */
-            background-color: #b6c2cc; 
+            /* ✨ 그라데이션 적용: 위쪽(채도 낮춘 청회색) -> 아래쪽(일반 연회색) */
+            background: linear-gradient(to bottom, #b8c0c6 0%, #e6e6e6 100%);
+            
             border-radius: 0; 
             box-shadow: none;
             width: 280px; 
-            min-height: 420px; /* 카운터 공간 확보를 위해 살짝 늘림 */
+            min-height: 420px; 
             position: relative;
             display: flex;
             flex-direction: column;
@@ -101,17 +102,17 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 30px 20px 20px 20px; /* 하단 패딩 조정 */
-            border: 2px solid #aab7c0;
+            padding: 30px 20px 20px 20px; 
+            border: 2px solid #aab7c0; /* 내부 테두리도 약간 채도 낮춤 */
         }
 
-        /* ✨ 이모지 박스 (배경색 변경: 외부 프레임과 동일) */
+        /* ✨ 이모지 박스 (배경색: 그라데이션 상단 컬러와 통일) */
         .icon-box {
             width: 80px;
             height: 80px;
             
-            /* 외부 프레임 색상과 일치 (#b6c2cc) */
-            background-color: #b6c2cc; 
+            /* 프레임 상단 색상(#b8c0c6)과 일치시켜 통일감 부여 */
+            background-color: #b8c0c6; 
             
             border: none; 
             display: flex;
@@ -135,25 +136,22 @@
             transform: scaleX(0.94); 
             transform-origin: top center;
             text-align: center;
-            margin-bottom: 20px; /* 카운터 박스와의 여백 */
+            margin-bottom: 20px; 
         }
 
-        /* ✨ 순번 카운터 박스 (n / m 번째 아이템) */
+        /* ✨ 순번 카운터 박스 (배경색: 그라데이션 상단 컬러와 통일) */
         .counter-box {
-            /* 아래로 밀어내기 위해 margin-top auto 사용 */
             margin-top: auto; 
             
-            background-color: #b6c2cc; /* 프레임 색상 */
-            color: #fff; /* 흰색 글씨 */
+            /* 프레임 상단 색상(#b8c0c6)과 일치 */
+            background-color: #b8c0c6; 
+            
+            color: #fff; 
             padding: 6px 12px;
             font-size: 0.8rem;
-            font-weight: 700; /* 잘 보이게 살짝 굵게 */
-            
-            /* 장평 및 폰트 스타일 통일 */
+            font-weight: 700; 
             transform: scaleX(0.94); 
-            
-            /* 디자인 요소 */
-            border-radius: 0; /* 각지게 */
+            border-radius: 0; 
         }
 
         @keyframes snapIn {
@@ -201,25 +199,16 @@
     </div>
 
     <script>
-        // ✨ 첫 번째 인자로 element(this)를 받습니다.
         function openModal(element, title, icon, desc) {
             const modal = document.getElementById('itemModal');
-            
-            // 1. 데이터 채우기
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalIcon').innerText = icon;
             document.getElementById('modalDesc').innerText = desc;
 
-            // 2. 순서 자동 계산 로직 🚀
-            // 전체 아이템 리스트를 가져옵니다.
             const allItems = document.querySelectorAll('.item-container .item');
-            const totalCount = allItems.length; // 전체 개수 (m)
-            
-            // 클릭한 요소(element)가 리스트에서 몇 번째인지 찾습니다. (0부터 시작하므로 +1)
-            // Array.from()을 사용해 NodeList를 배열로 변환 후 인덱스 찾기
-            const currentIndex = Array.from(allItems).indexOf(element) + 1; // 현재 순번 (n)
+            const totalCount = allItems.length; 
+            const currentIndex = Array.from(allItems).indexOf(element) + 1; 
 
-            // 3. 카운터 텍스트 업데이트
             document.getElementById('itemCounter').innerText = `${currentIndex} / ${totalCount} 번째 아이템`;
 
             modal.style.display = 'flex';
@@ -237,3 +226,4 @@
     </script>
 </body>
 </html>
+
