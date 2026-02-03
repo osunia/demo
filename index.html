@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>아이템 모달 Squared V5</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
+    <title>아이템 모달 Flat Squared V6</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700&display=swap" rel="stylesheet">
     <style>
         /* 1. 기본 설정 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,105 +39,104 @@
             align-items: center;
         }
 
-        /* 외부 프레임 (완전 사각, 진한 쿨 그레이) */
+        /* 외부 프레임 (그림자 없는 완전 사각) */
         .modal-frame {
-            /* ✨ 색상: 이전보다 진하고 푸른 기가 도는 회색 */
+            /* 진한 쿨 그레이 */
             background-color: #b6c2cc; 
             
-            /* ✨ 형태: 완전 사각 (border-radius 제거) */
+            /* 완전 사각 */
             border-radius: 0; 
             
-            /* 비율: 3:4 세로형 */
+            /* 그림자 제거 (Flat Style) */
+            box-shadow: none; 
+            
             width: 280px; 
             min-height: 400px; 
-            
-            box-shadow: 10px 10px 0 rgba(0,0,0,0.2); /* 그림자도 각지게 처리 */
             
             position: relative;
             display: flex;
             flex-direction: column;
             
-            /* 위쪽 헤더 영역을 조금 더 두텁게 확보 */
+            /* 상단 헤더 공간 확보 (패딩) */
             padding: 55px 12px 12px 12px; 
-            
-            /* 폰트 설정: 기본적으로 진하게 */
-            font-weight: 700;
             
             animation: snapIn 0.2s cubic-bezier(0, 1, 0.5, 1);
         }
 
-        /* 헤더 영역 */
+        /* 헤더 영역 (제목 왼쪽 정렬) */
         .modal-header-area {
             position: absolute;
             top: 0; left: 0;
             width: 100%;
-            height: 55px; /* 패딩과 일치 */
+            height: 55px;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 15px;
+            align-items: center; /* 수직 중앙 */
+            justify-content: flex-start; /* ✨ 왼쪽 정렬 */
+            padding-left: 15px; /* 왼쪽 여백 */
         }
 
-        /* 제목 텍스트 (장평 좁게 + 아주 굵게) */
+        /* 제목 텍스트 (본문과 비슷한 굵기, 장평 완화) */
         #modalTitle {
-            color: #000; /* 완전 검정 */
-            font-size: 1.2rem;
-            font-weight: 900; /* Black weight */
+            color: #000;
+            font-size: 1.1rem;
             
-            /* ✨ 핵심: 장평(Width) 줄이기 트릭 */
-            transform: scaleX(0.85); 
-            transform-origin: center;
-            letter-spacing: -0.5px; /* 자간도 좁게 */
+            /* ✨ 굵기 완화: Black(900) -> Bold(700) */
+            font-weight: 700; 
+            
+            /* ✨ 장평 완화: 0.85 -> 0.94 (덜 찌그러짐) */
+            transform: scaleX(0.94); 
+            transform-origin: left center; /* 왼쪽 기준 변형 */
+            
+            letter-spacing: -0.5px;
             white-space: nowrap;
         }
 
-        /* X 버튼 (두꺼운 흰색 + 붉은 외곽선) */
+        /* X 버튼 (모서리 밀착, 비율 유지) */
         .close-btn {
             position: absolute;
-            right: 15px;
-            top: 10px;
+            /* ✨ 위치: 모서리에 더 가깝게 */
+            right: 6px; 
+            top: 6px;
             
-            font-family: sans-serif; /* 가장 깔끔한 고딕 */
-            font-size: 2.2rem; /* 크기 키움 */
-            font-weight: 900; /* 가장 굵게 */
+            font-family: Arial, sans-serif; /* 기본 산세리프 */
+            font-size: 2.2rem;
+            font-weight: 900;
             line-height: 1;
             cursor: pointer;
             
-            /* ✨ 텍스트 내부 흰색, 외곽선 붉은색 */
+            /* 색상 스타일 유지 */
             color: #fff;
-            -webkit-text-stroke: 3px #ff4d4d; /* 외곽선 두께 3px로 강화 */
-            paint-order: stroke fill; /* 외곽선이 글자를 파먹지 않게 */
+            -webkit-text-stroke: 3px #ff4d4d;
+            paint-order: stroke fill;
             
-            /* 장평 조절로 약간 길쭉한 X 만들기 */
-            transform: scaleX(0.8); 
-            transition: transform 0.1s;
+            /* ✨ 장평 왜곡 제거: 원래 비율대로 */
+            transform: none; 
         }
         .close-btn:hover {
-            /* 호버 시 약간의 움직임 */
-            transform: scaleX(0.8) translateY(-2px); 
+            color: #ffe6e6; /* 호버 시 내부 흰색을 살짝 붉게 */
         }
 
-        /* 내부 콘텐츠 박스 (완전 사각) */
+        /* 내부 콘텐츠 박스 (사각) */
         .modal-inner {
             background-color: #fff;
-            border-radius: 0; /* 각지게 */
+            border-radius: 0;
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 30px 20px;
             
-            /* 안쪽 테두리 효과 (선택사항) */
+            /* 내부 테두리도 깔끔하게 */
             border: 2px solid #aab7c0;
         }
 
-        /* 이모지 박스 (완전 사각, 옅은 회색) */
+        /* 이모지 박스 (사각) */
         .icon-box {
             width: 80px;
             height: 80px;
             background-color: #eceff1;
-            border-radius: 0; /* 각지게 */
-            border: 2px solid #cfd8dc; /* 테두리 추가 */
+            border-radius: 0;
+            border: 2px solid #cfd8dc;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -146,26 +145,25 @@
 
         .modal-icon {
             font-size: 3.5rem;
-            filter: drop-shadow(4px 4px 0 rgba(0,0,0,0.1)); /* 그림자도 각지게 */
+            filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.1));
         }
 
-        /* 설명 텍스트 (장평 좁게) */
+        /* 설명 텍스트 (장평 완화) */
         .modal-desc {
             font-size: 0.95rem;
             color: #333;
             line-height: 1.6;
-            font-weight: 700; /* Bold */
+            font-weight: 700; /* 제목과 동일한 굵기 */
             word-break: keep-all;
             text-align: center;
             
-            /* ✨ 장평 90%로 축소하여 슬림하고 단단한 느낌 */
-            transform: scaleX(0.9); 
+            /* ✨ 장평 완화 */
+            transform: scaleX(0.94); 
             transform-origin: top center;
         }
 
-        /* 팝업 애니메이션 (단단하게 등장) */
         @keyframes snapIn {
-            from { opacity: 0; transform: scale(0.9); }
+            from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
     </style>
@@ -173,7 +171,7 @@
 <body>
 
     <div style="text-align:center; margin-bottom:30px; color:#666;">
-        <p style="font-weight:900; transform:scaleX(0.85);">아이템을 선택하세요</p>
+        <p style="font-weight:700; transform:scaleX(0.94);">아이템을 선택하세요</p>
     </div>
 
     <div class="item-container">
@@ -184,7 +182,7 @@
         <div class="item" onclick="openModal('사르디나 : 물풍선', '🎈', '얇은 고무풍선에 물을 채운 장난감.<br>다양한 놀이에 활용할 수 있다.<br>특히 칼리치아는 사르디나 여름 축제 우승 후보 지역이다.')">
             🎈
         </div>
-        
+
         <div class="item" onclick="openModal('오래된 지도', '🗺️', '알 수 없는 섬의 위치가 그려진 지도.<br>잉크가 번져 있어 자세한 내용은 알아보기 힘들다.')">
             🗺️
         </div>
