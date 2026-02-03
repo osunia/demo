@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>아이템 모달 프로토타입 V2</title>
+    <title>아이템 모달 프로토타입 V3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans&display=swap" rel="stylesheet">
     <style>
         /* 1. 기본 설정 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,6 +26,7 @@
             transition: all 0.3s ease;
             filter: grayscale(100%);
             opacity: 0.5;
+            font-family: 'Pixelify Sans', sans-serif; /* 리스트 이모지도 도트 느낌 */
         }
         .item:hover { opacity: 1; transform: scale(1.1); }
 
@@ -34,121 +36,107 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.4);
             z-index: 1000;
             justify-content: center;
             align-items: center;
         }
 
-        .modal-box {
-            background-color: #fff;
+        /* 외부 박스 (프레임 역할 - 연해진 진한 회색) */
+        .modal-frame {
+            background-color: #757575; /* 기존보다 연한 회색 */
             width: 320px;
             max-width: 90%;
-            border-radius: 4px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            animation: fadeIn 0.3s ease-out;
+            border-radius: 6px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            animation: popUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); /* 뿅! 하고 뜨는 효과 */
+            position: relative;
+            /* 내부 패딩을 통해 테두리 두께 조절 (위쪽을 더 두껍게) */
+            padding: 45px 12px 12px 12px; 
         }
 
-        /* 헤더 스타일 */
-        .modal-header {
-            background-color: #4a4a4a;
-            color: #fff;
-            padding: 10px 15px;
-            font-weight: bold;
-            font-size: 1rem;
+        /* 헤더 (제목 + 닫기버튼) - 프레임의 상단 여백에 배치 */
+        .modal-header-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 45px; /* 상단 패딩과 높이 일치 */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #333;
+            padding: 0 15px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1rem;
         }
 
-        /* 닫기 버튼: 외곽선 붉은색, 내부 흰색 */
+        /* 닫기 버튼: 텍스트 외곽선 스타일 (박스 없음) */
         .close-btn {
-            width: 24px;
-            height: 24px;
-            background-color: #fff;
-            border: 2px solid #ff6b6b;
-            color: #ff6b6b;
-            font-weight: bold;
-            font-size: 1.2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 900;
             cursor: pointer;
-            border-radius: 4px; /* 살짝 둥글게 */
-            line-height: 0; /* X 정중앙 정렬 보정 */
+            line-height: 1;
+            font-family: sans-serif; /* 깔끔한 X 모양을 위해 기본 폰트 */
+            
+            /* ✨ 핵심: 내부 흰색, 외곽선 붉은색 */
+            color: white; 
+            -webkit-text-stroke: 2px #ff6b6b; /* 크롬, 사파리 등 */
+            text-shadow: 1px 1px 0 #ff6b6b; /* 호환성 대비 그림자 */
+            transition: transform 0.2s;
         }
         .close-btn:hover {
-            background-color: #ff6b6b;
-            color: #fff;
+            transform: scale(1.1) rotate(90deg); /* 살짝 커지며 회전 */
         }
 
-        /* 바디 스타일 */
-        .modal-body {
-            background-color: #f9f9f9;
-            padding: 30px 20px 20px 20px; /* 상단 여백 확보 */
+        /* 내부 흰색 박스 */
+        .modal-inner {
+            background-color: #fff;
+            border-radius: 4px;
+            padding: 25px 15px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        /* ✨ 아이콘 박스 래퍼 (위치 잡기용) */
-        .icon-wrapper {
-            position: relative;
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px auto; /* 중앙 정렬 */
-        }
-
-        /* 아이콘 뒷배경 박스 (진한 회색 정사각형) */
+        /* 이모지 배경 박스 (더 연해진 회색, 빗금 제거) */
         .icon-box {
-            width: 100%;
-            height: 100%;
-            background-color: #333; /* 진한 회색 */
+            width: 70px;
+            height: 70px;
+            background-color: #e0e0e0; /* 아주 연한 회색 */
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 6px;
-            position: relative;
-            z-index: 2; /* 빗금보다 위에 오도록 */
-            box-shadow: 2px 4px 8px rgba(0,0,0,0.2);
-            border: 1px solid #555; /* 미세한 테두리 */
-        }
-
-        .modal-icon {
-            font-size: 3rem;
-            /* 이모지가 박스 안에 예쁘게 들어가도록 */
-            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); 
-        }
-
-        /* 빗금 장식 (왼쪽 아래, 걸치게) */
-        .decoration-lines {
-            position: absolute;
-            bottom: -10px; /* 박스보다 아래로 */
-            left: -15px;   /* 박스보다 왼쪽으로 */
-            width: 60px;
-            height: 60px;
-            z-index: 1; /* 박스 뒤로 */
+            border-radius: 4px;
+            margin-bottom: 20px;
             
-            /* 세로 빗금 패턴 생성 */
-            background: repeating-linear-gradient(
-                90deg,
-                transparent,
-                transparent 4px,
-                #ccc 4px, /* 빗금 색상 */
-                #ccc 6px
-            );
+            /* 약간의 깊이감 (안으로 파인 느낌) */
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* 도트 스타일 이모지 */
+        .modal-icon {
+            font-size: 2.5rem;
+            font-family: 'Pixelify Sans', cursive; /* 픽셀 폰트 적용 */
+            
+            /* ✨ 이모지를 픽셀화처럼 보이게 하는 트릭 */
+            /* 1. 흑백 + 대비를 높여 거칠게 만듦 */
+            filter: grayscale(100%) contrast(150%); 
+            /* 2. 렌더링 방식을 픽셀 단위로 (이미지일 경우 더 효과적) */
+            image-rendering: pixelated; 
         }
 
         .modal-desc {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: #333;
             line-height: 1.6;
             word-break: keep-all;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes popUp {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
@@ -169,16 +157,15 @@
     </div>
 
     <div id="itemModal" class="modal-overlay" onclick="closeModalOutside(event)">
-        <div class="modal-box">
-            <div class="modal-header">
+        <div class="modal-frame">
+            <div class="modal-header-area">
                 <span id="modalTitle">아이템 이름</span>
                 <div class="close-btn" onclick="closeModal()">&times;</div>
             </div>
-            <div class="modal-body">
-                <div class="icon-wrapper">
-                    <div class="decoration-lines"></div> <div class="icon-box">
-                        <span id="modalIcon" class="modal-icon">💍</span>
-                    </div>
+
+            <div class="modal-inner">
+                <div class="icon-box">
+                    <span id="modalIcon" class="modal-icon">💍</span>
                 </div>
                 <div id="modalDesc" class="modal-desc">설명 내용</div>
             </div>
