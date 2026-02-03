@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사르디나 아이템 모달 V11</title>
+    <title>사르디나 아이템 모달 V12 (Hidden Demo)</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* 1. 기본 설정 */
@@ -14,148 +14,163 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* 아이템이 많아져서 min-height로 변경 */
+            min-height: 100vh;
             flex-direction: column;
-            padding: 50px 20px; /* 상하 여백 확보 */
+            padding: 50px 20px;
+            overflow-x: hidden; /* 모서리 효과가 화면 밖으로 나가는 것 방지 */
         }
 
-        /* 2. 아이템 리스트 (개수가 많아 줄바꿈 처리) */
+        /* =========================================
+           ✨ NEW: 좌측 상단 종이 접기 인터랙션 영역
+        ========================================= */
+        #folded-corner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 120px; /* 클릭 영역 확보 */
+            height: 120px;
+            z-index: 2000; /* 모달 다음으로 높게 */
+            cursor: pointer;
+        }
+
+        /* 1) 접힌 종이 귀 (The Fold) */
+        .paper-fold {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            /* 삼각형 만들기 트릭 */
+            border-style: solid;
+            border-width: 80px 80px 0 0; /* 접힌 크기 조절 */
+            /* 접힌 뒷면의 색상 그라데이션: 
+               페이지 배경색과 어우러지되, 살짝 어둡고 입체감 있게 표현 
+            */
+            border-color: #c4ccd2 transparent transparent transparent;
+            
+            /* 입체감을 위한 그림자 */
+            filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.3));
+            
+            /* 애니메이션 설정 */
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 3; /* 이모지보다 위에 있어야 함 */
+        }
+
+        /* 종이가 클릭되어 열렸을 때 (.is-open 상태) */
+        #folded-corner-container.is-open .paper-fold {
+            /* 접힌 부분이 더 말려 올라가는 느낌 */
+            border-width: 30px 30px 0 0;
+            transform: translate(-5px, -5px); /* 살짝 더 구석으로 */
+        }
+
+
+        /* 2) 숨겨진 이모지 래퍼 */
+        .hidden-emoji-wrapper {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2; /* 종이 접힌 부분 아래 */
+            
+            /* 초기 상태: 종이 틈새로 살짝만 보이게 위치 조정 */
+            transform: translate(-40px, -40px) rotate(-20deg);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); /* 튕기는 듯한 등장 효과 */
+            pointer-events: none; /* 닫혀있을 땐 클릭 방지 */
+            opacity: 0.7; /* 살짝 숨겨진 느낌 */
+        }
+
+        /* 이모지가 밖으로 나왔을 때 (.is-open 상태) */
+        #folded-corner-container.is-open .hidden-emoji-wrapper {
+            /* 화면 안쪽으로 완전히 이동 */
+            transform: translate(40px, 40px) rotate(0deg) scale(1.2);
+            pointer-events: auto; /* 클릭 가능하게 변경 */
+            opacity: 1;
+            cursor: pointer;
+        }
+        
+        /* 숨겨진 이모지 스타일 */
+        #hiddenEmoji {
+            font-size: 3.5rem;
+            /* 기존 모달 이모지와 동일한 그림자 효과 */
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+        }
+        #hiddenEmoji:hover {
+            /* 마우스 올리면 살짝 흔들림 */
+            animation: shake 0.5s ease-in-out infinite;
+        }
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+
+
+        /* =========================================
+           기존 스타일 유지
+        ========================================= */
+        /* 2. 아이템 리스트 (배경 역할) */
         .item-container { 
-            display: flex; 
-            gap: 20px; 
-            flex-wrap: wrap; /* 여러 줄로 표시 */
-            justify-content: center;
-            max-width: 800px;
+            display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 800px;
+            opacity: 0.3; /* 숨겨진 요소 강조를 위해 배경 흐리게 처리 (선택사항) */
+            pointer-events: none; /* 배경 아이템 클릭 방지 (데모용) */
         }
         .item {
-            font-size: 2.5rem; /* 목록에서는 적당한 크기 */
-            cursor: pointer;
-            transition: transform 0.1s;
+            font-size: 2.5rem; transition: transform 0.1s; filter: grayscale(100%);
         }
-        .item:hover { transform: scale(1.2); }
 
         /* 3. 모달 레이아웃 */
         .modal-overlay {
             display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.4); z-index: 3000; /* 최상위 레벨 */
+            justify-content: center; align-items: center;
         }
 
         /* 외부 프레임 */
         .modal-frame {
             background: linear-gradient(to bottom, #b8c0c6 0%, #e6e6e6 100%);
-            border-radius: 0; 
-            box-shadow: none;
-            width: 280px; 
-            min-height: 420px; 
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            padding: 55px 8px 8px 8px; /* 여백 0.7배 유지 */
+            border-radius: 0; box-shadow: none;
+            width: 280px; min-height: 420px; 
+            position: relative; display: flex; flex-direction: column;
+            padding: 55px 8px 8px 8px; 
             animation: snapIn 0.2s cubic-bezier(0, 1, 0.5, 1);
         }
 
         /* 헤더 영역 */
         .modal-header-area {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 55px;
-            display: flex;
-            align-items: center; 
-            justify-content: flex-start;
-            padding-left: 15px; 
+            position: absolute; top: 0; left: 0; width: 100%; height: 55px;
+            display: flex; align-items: center; justify-content: flex-start; padding-left: 15px; 
         }
-
-        /* 제목 텍스트 */
         #modalTitle {
-            color: #000;
-            font-size: 1.1rem;
-            font-weight: 500; 
-            transform: scaleX(0.94); 
-            transform-origin: left center;
-            letter-spacing: -0.5px;
-            white-space: nowrap;
+            color: #000; font-size: 1.1rem; font-weight: 500; 
+            transform: scaleX(0.94); transform-origin: left center; letter-spacing: -0.5px; white-space: nowrap;
         }
-
-        /* X 버튼 */
         .close-btn {
-            position: absolute;
-            right: 6px; 
-            top: 6px;
-            font-family: Arial, sans-serif;
-            font-size: 2.2rem;
-            font-weight: 900; 
-            line-height: 1;
-            cursor: pointer;
-            color: #fff;
-            -webkit-text-stroke: 3px #ff4d4d;
-            paint-order: stroke fill;
+            position: absolute; right: 6px; top: 6px;
+            font-family: Arial, sans-serif; font-size: 2.2rem; font-weight: 900; line-height: 1; cursor: pointer;
+            color: #fff; -webkit-text-stroke: 3px #ff4d4d; paint-order: stroke fill;
         }
         .close-btn:hover { color: #ffe6e6; }
 
-        /* 내부 콘텐츠 박스 (테두리 없음) */
+        /* 내부 콘텐츠 */
         .modal-inner {
-            background-color: #fff;
-            border-radius: 0;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 30px 20px 20px 20px; 
-            border: none; 
+            background-color: #fff; border-radius: 0; flex: 1;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 30px 20px 20px 20px; border: none; 
         }
-
-        /* 이모지 박스 (배경색: 프레임 상단 컬러와 통일) */
         .icon-box {
-            width: 80px;
-            height: 80px;
-            background-color: #b8c0c6; 
-            border: none; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 25px;
+            width: 80px; height: 80px; background-color: #b8c0c6; border: none; 
+            display: flex; justify-content: center; align-items: center; margin-bottom: 25px;
         }
-
-        /* ✨ 모달 내부 이모지 (그림자 효과 강화) */
         .modal-icon {
-            font-size: 3.5rem;
-            /* 은은한 그림자 효과: 
-               배경색(#b8c0c6)과 묻히지 않도록,
-               약간의 거리(0 4px)와 블러(8px)를 준 검은 그림자 추가
-            */
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+            font-size: 3.5rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
         }
-
-        /* 설명 텍스트 */
         .modal-desc {
-            font-size: 0.95rem;
-            color: #333;
-            line-height: 1.6;
-            font-weight: 500; 
-            word-break: keep-all; 
-            transform: scaleX(0.94); 
-            transform-origin: top center;
-            text-align: center;
-            margin-bottom: 20px; 
+            font-size: 0.95rem; color: #333; line-height: 1.6; font-weight: 500; 
+            word-break: keep-all; transform: scaleX(0.94); transform-origin: top center; text-align: center; margin-bottom: 20px; 
         }
-
-        /* 순번 카운터 박스 */
         .counter-box {
-            margin-top: auto; 
-            background-color: #b8c0c6; 
-            color: #fff; 
-            padding: 6px 12px;
-            font-size: 0.8rem;
-            font-weight: 700; 
-            transform: scaleX(0.94); 
-            border-radius: 0; 
+            margin-top: auto; background-color: #b8c0c6; color: #fff; 
+            padding: 6px 12px; font-size: 0.8rem; font-weight: 700; transform: scaleX(0.94); border-radius: 0; 
         }
 
         @keyframes snapIn {
@@ -166,77 +181,20 @@
 </head>
 <body>
 
+    <div id="folded-corner-container" onclick="togglePaper()">
+        <div class="hidden-emoji-wrapper" onclick="onHiddenEmojiClick(event)">
+            <span id="hiddenEmoji">❓</span> </div>
+        <div class="paper-fold"></div>
+    </div>
+
+
     <div style="text-align:center; margin-bottom:30px; color:#666;">
-        <p style="font-weight:500; transform:scaleX(0.94);">아이템을 선택하여 상세 정보를 확인하세요.</p>
+        <p style="font-weight:500; transform:scaleX(0.94);">왼쪽 위 모서리를 확인해보세요! 👆</p>
     </div>
 
-    <div class="item-container">
-        
-        <div class="item" onclick="openModal(this, '낡은 바구니', '🧺', '거친 파도를 넘어 해변에 닿았던 작은 요람. 짠 내 섞인 바다 향기 대신 포근한 햇살 냄새가 배어 있다.')">
-            🧺
-        </div>
-        <div class="item" onclick="openModal(this, '오렌지 주스 병', '🍊', '숙취에 시달리는 누군가를 위한 해장 음료. \'일이나 하자\'는 무언의 압박이 느껴진다.')">
-            🍊
-        </div>
-        <div class="item" onclick="openModal(this, '사라진 서류 한 장', '📄', '중요한 서류의 마지막 페이지. 어딘가 구석에 떨어져 있는 것을 발견했다.')">
-            📄
-        </div>
-        <div class="item" onclick="openModal(this, '반쯤 먹은 초콜릿 쿠키', '🍪', '휴게실에서 슬쩍해온 간식. 선물로 들어왔던 것일까? 바삭한 식감이 일품이다.')">
-            🍪
-        </div>
-        <div class="item" onclick="openModal(this, '선물 받은 초콜릿 상자', '🍫', '아주 오래전, 긴 항해를 마치고 돌아온 이가 건넨 선물. 아껴 먹느라 고심했던 흔적이 있다.')">
-            🍫
-        </div>
-        <div class="item" onclick="openModal(this, '올리브 절임', '🍸', '마티니에 곁들이는 안주. 어른의 맛을 동경하는 애송이에게는 아직 이르다.')">
-            🍸
-        </div>
-        <div class="item" onclick="openModal(this, '깔루아 밀크 한 잔', '☕', '커피를 좋아하는 누군가의 입맛에 딱 맞춘 달콤한 술. 한 잔만 마셔도 볼이 발그레해진다.')">
-            ☕
-        </div>
-        <div class="item" onclick="openModal(this, '숙성된 럼', '🥃', '로잔나가 즐겨 찾는 독한 술. 그녀에게는 가벼운 음료일 뿐이지만, 누군가에게는 한 모금만으로도 세상을 빙글빙글 돌게 만든다.')">
-            🥃
-        </div>
-        <div class="item" onclick="openModal(this, '사파이어 반지', '💍', '푸른 보석이 박힌 약속의 증표. 장인의 목숨(?)을 담보로 여름 축제 전날 완성되었다는 소문이 있다.')">
-            💍
-        </div>
-        <div class="item" onclick="openModal(this, '낡은 곰인형', '🧸', '악몽을 꾸던 밤, 아이의 품을 지켜주던 애착 인형. 지금은 선반 한켠에 자리해 있다.')">
-            🧸
-        </div>
-        <div class="item" onclick="openModal(this, '빈 유리병', '🫙', '코르크 마개로 입구가 단단히 봉해져 있다. 수신인은 바다 너머의 옛 친구.')">
-            🫙
-        </div>
-        <div class="item" onclick="openModal(this, '오래 된 편지', '📜', '전하지 못한 편지. 베로니카에게... 라는 말 뒤로 이어지는 문장은 잉크로 얼룩져 보이지 않는다.')">
-            📜
-        </div>
-        <div class="item" onclick="openModal(this, '낡은 동화책', '📖', '사르디나 아이들은 모두 알 법한 동화. 인어와 소녀의 우정 이야기가 담겨 있다.')">
-            📖
-        </div>
-        <div class="item" onclick="openModal(this, '반짝이는 열쇠', '🗝️', '메디치 저택의 문을 여는 열쇠. 섬세한 닻 문양이 담겨 있다.')">
-            🗝️
-        </div>
-        <div class="item" onclick="openModal(this, '원석 목걸이', '🔷️', '긴 출장에서 돌아온 통령이 건넨 선물. 퉁명스러운 말 뒤에는 따뜻한 마음이 담겨 있다.')">
-            🔷️
-        </div>
-        <div class="item" onclick="openModal(this, '작은 소라 껍데기', '🐚', '귀를 기울이면 파도 소리 대신, &quot;사랑해&quot;라고 속삭이는 다정한 목소리가 들리는 듯하다.')">
-            🐚
-        </div>
-        <div class="item" onclick="openModal(this, '의회당 뒷편의 고양이', '🐈', '점심시간만 되면 뒷문 근처를 서성이는 녀석. 주머니에 간식을 챙겨 다니는 누군가를 유독 잘 따른다.')">
-            🐈
-        </div>
-        <div class="item" onclick="openModal(this, '구깃한 작은 쪽지', '📝', '결재 서류 귀퉁이에 작게 그려진 그림. \'통령님♡\', \'오늘 점심 뭐 먹지?\' 와 같은 생각들이 적혀 있다.')">
-            📝
-        </div>
-        <div class="item" onclick="openModal(this, '잉크가 묻은 만년필', '✒️', '졸다가 놓쳐버린 펜. 책상 위에 데굴데굴 굴러가며 검푸른 궤적을 남겼다.')">
-            ✒️
-        </div>
-        <div class="item" onclick="openModal(this, '손때 묻은 사르디나 지도', '🗺️', '행정 구역이 표시된 딱딱한 지도가 아니다. 해변가, 노을이 예쁜 언덕, 단골 바 등 \'함께 거닐던 곳\'에만 잉크로 동그라미가 쳐져 있다.')">
-            🗺️
-        </div>
-        <div class="item" onclick="openModal(this, '철 지난 지역 신문', '📰', '여름 축제를 다룬 1면 기사가 실려 있다. 화려한 불꽃놀이 사진 구석에, 인파를 빠져나가는 두 사람의 뒷모습이 아주 작게 담겨 있을지도 모른다.')">
-            📰
+    <div class="item-container" id="backgroundList">
         </div>
 
-    </div>
 
     <div id="itemModal" class="modal-overlay" onclick="closeModalOutside(event)">
         <div class="modal-frame">
@@ -248,32 +206,117 @@
                 <div class="icon-box">
                     <span id="modalIcon" class="modal-icon"></span>
                 </div>
-                
                 <div id="modalDesc" class="modal-desc"></div>
-                
-                <div id="itemCounter" class="counter-box">0 / 0 번째 아이템</div>
+                <div id="itemCounter" class="counter-box">? / ? Hidden Item</div>
             </div>
         </div>
     </div>
 
     <script>
-        function openModal(element, title, icon, desc) {
+        // 1. 아이템 데이터 배열 (JS Object Array) ✨
+        // HTML에 하드코딩하지 않고 데이터로 관리합니다.
+        const itemsData = [
+            { title: '낡은 바구니', icon: '🧺', desc: '거친 파도를 넘어 해변에 닿았던 작은 요람. 짠 내 섞인 바다 향기 대신 포근한 햇살 냄새가 배어 있다.' },
+            { title: '오렌지 주스 병', icon: '🍊', desc: '숙취에 시달리는 누군가를 위한 해장 음료. \'일이나 하자\'는 무언의 압박이 느껴진다.' },
+            { title: '사라진 서류 한 장', icon: '📄', desc: '중요한 서류의 마지막 페이지. 어딘가 구석에 떨어져 있는 것을 발견했다.' },
+            { title: '반쯤 먹은 초콜릿 쿠키', icon: '🍪', desc: '휴게실에서 슬쩍해온 간식. 선물로 들어왔던 것일까? 바삭한 식감이 일품이다.' },
+            { title: '선물 받은 초콜릿 상자', icon: '🍫', desc: '아주 오래전, 긴 항해를 마치고 돌아온 이가 건넨 선물. 아껴 먹느라 고심했던 흔적이 있다.' },
+            { title: '올리브 절임', icon: '🍸', desc: '마티니에 곁들이는 안주. 어른의 맛을 동경하는 애송이에게는 아직 이르다.' },
+            { title: '깔루아 밀크 한 잔', icon: '☕', desc: '커피를 좋아하는 누군가의 입맛에 딱 맞춘 달콤한 술. 한 잔만 마셔도 볼이 발그레해진다.' },
+            { title: '숙성된 럼', icon: '🥃', desc: '로잔나가 즐겨 찾는 독한 술. 그녀에게는 가벼운 음료일 뿐이지만, 누군가에게는 한 모금만으로도 세상을 빙글빙글 돌게 만든다.' },
+            { title: '사파이어 반지', icon: '💍', desc: '푸른 보석이 박힌 약속의 증표. 장인의 목숨(?)을 담보로 여름 축제 전날 완성되었다는 소문이 있다.' },
+            { title: '낡은 곰인형', icon: '🧸', desc: '악몽을 꾸던 밤, 아이의 품을 지켜주던 애착 인형. 지금은 선반 한켠에 자리해 있다.' },
+            { title: '빈 유리병', icon: '🫙', desc: '코르크 마개로 입구가 단단히 봉해져 있다. 수신인은 바다 너머의 옛 친구.' },
+            { title: '오래 된 편지', 'icon': '📜', desc: '전하지 못한 편지. 베로니카에게... 라는 말 뒤로 이어지는 문장은 잉크로 얼룩져 보이지 않는다.' },
+            { title: '낡은 동화책', icon: '📖', desc: '사르디나 아이들은 모두 알 법한 동화. 인어와 소녀의 우정 이야기가 담겨 있다.' },
+            { title: '반짝이는 열쇠', icon: '🗝️', desc: '메디치 저택의 문을 여는 열쇠. 섬세한 닻 문양이 담겨 있다.' },
+            { title: '원석 목걸이', icon: '🔷️', desc: '긴 출장에서 돌아온 통령이 건넨 선물. 퉁명스러운 말 뒤에는 따뜻한 마음이 담겨 있다.' },
+            { title: '작은 소라 껍데기', icon: '🐚', desc: '귀를 기울이면 파도 소리 대신, "사랑해"라고 속삭이는 다정한 목소리가 들리는 듯하다.' },
+            { title: '의회당 뒷편의 고양이', icon: '🐈', desc: '점심시간만 되면 뒷문 근처를 서성이는 녀석. 주머니에 간식을 챙겨 다니는 누군가를 유독 잘 따른다.' },
+            { title: '구깃한 작은 쪽지', icon: '📝', desc: '결재 서류 귀퉁이에 작게 그려진 그림. \'통령님♡\', \'오늘 점심 뭐 먹지?\' 외 같은 생각들이 적혀 있다.' },
+            { title: '잉크가 묻은 만년필', icon: '✒️', desc: '졸다가 놓쳐버린 펜. 책상 위에 데굴데굴 굴러가며 검푸른 궤적을 남겼다.' },
+            { title: '손때 묻은 사르디나 지도', icon: '🗺️', desc: '행정 구역이 표시된 딱딱한 지도가 아니다. 해변가, 노을이 예쁜 언덕, 단골 바 등 \'함께 거닐던 곳\'에만 잉크로 동그라미가 쳐져 있다.' },
+            { title: '철 지난 지역 신문', icon: '📰', desc: '여름 축제를 다룬 1면 기사가 실려 있다. 화려한 불꽃놀이 사진 구석에, 인파를 빠져나가는 두 사람의 뒷모습이 아주 작게 찍혀 있을지도 모른다.' }
+        ];
+
+        // 현재 숨겨진 아이템 정보를 담을 변수
+        let currentHiddenItem = null;
+        const cornerContainer = document.getElementById('folded-corner-container');
+        const hiddenEmojiSpan = document.getElementById('hiddenEmoji');
+
+
+        // 2. 초기화 및 랜덤 아이템 세팅 함수 🚀
+        function initHiddenItem() {
+            // 랜덤 인덱스 생성
+            const randomIndex = Math.floor(Math.random() * itemsData.length);
+            // 랜덤 아이템 선택
+            currentHiddenItem = itemsData[randomIndex];
+            // 이모지 업데이트
+            hiddenEmojiSpan.innerText = currentHiddenItem.icon;
+            console.log(`Hidden item set to: ${currentHiddenItem.title}`); // 디버깅용
+        }
+
+
+        // 3. 종이 클릭 시 열고 닫기 (Toggle)
+        function togglePaper() {
+            // .is-open 클래스를 넣었다 뺐다 함 -> CSS Transition 발동
+            cornerContainer.classList.toggle('is-open');
+        }
+
+        // 4. 숨겨진 이모지 클릭 시 모달 열기
+        function onHiddenEmojiClick(event) {
+            // 부모(종이)의 클릭 이벤트가 발생하지 않도록 막음 (이벤트 버블링 방지)
+            event.stopPropagation();
+
+            if (!currentHiddenItem) return;
+
+            // 기존 openModal 함수 재사용
+            // element 인자는 null로 넘김 (랜덤이라 순번 의미 없음)
+            openModal(null, currentHiddenItem.title, currentHiddenItem.icon, currentHiddenItem.desc, true);
+        }
+
+
+        // 5. 모달 열기 함수 (수정됨)
+        // isHiddenMode 파라미터 추가: 숨겨진 아이템 모드인지 확인
+        function openModal(element, title, icon, desc, isHiddenMode = false) {
             const modal = document.getElementById('itemModal');
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalIcon').innerText = icon;
             document.getElementById('modalDesc').innerText = desc;
 
-            const allItems = document.querySelectorAll('.item-container .item');
-            const totalCount = allItems.length; 
-            const currentIndex = Array.from(allItems).indexOf(element) + 1; 
+            const counterBox = document.getElementById('itemCounter');
 
-            document.getElementById('itemCounter').innerText = `${currentIndex} / ${totalCount} 번째 아이템`;
+            if (isHiddenMode) {
+                // 숨겨진 아이템 모드일 때 카운터 표시
+                counterBox.innerText = "Hidden Item Found! 🎉";
+            } else {
+                // 일반 모드 (기존 로직)
+                const allItems = document.querySelectorAll('.item-container .item');
+                const totalCount = allItems.length;
+                const currentIndex = Array.from(allItems).indexOf(element) + 1;
+                counterBox.innerText = `${currentIndex} / ${totalCount} 번째 아이템`;
+            }
 
             modal.style.display = 'flex';
         }
 
+        // 6. 모달 닫기 함수 (수정됨) 🔄
         function closeModal() {
             document.getElementById('itemModal').style.display = 'none';
+            
+            // ✨ 핵심: 모달 닫을 때 종이 상태 초기화 및 새 아이템 랜덤 배정
+            resetPaperState();
+        }
+
+        // 7. 종이 상태 초기화 함수
+        function resetPaperState() {
+            // 종이를 다시 닫음 (클래스 제거)
+            cornerContainer.classList.remove('is-open');
+            
+            // 약간의 딜레이 후 (종이가 닫히는 애니메이션 동안) 새 아이템 배정
+            setTimeout(() => {
+                initHiddenItem();
+            }, 400); // CSS transition 시간과 맞춤
         }
 
         function closeModalOutside(event) {
@@ -281,7 +324,25 @@
                 closeModal();
             }
         }
+
+
+        // =========================================
+        // 페이지 로드 시 실행
+        // =========================================
+        window.onload = function() {
+            // 1) 초기 랜덤 아이템 배정
+            initHiddenItem();
+
+            // 2) 배경에 아이템 리스트 깔아두기 (시각적 효과용)
+            const bgList = document.getElementById('backgroundList');
+            itemsData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerText = item.icon;
+                bgList.appendChild(div);
+            });
+        };
+
     </script>
 </body>
 </html>
-
