@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사르디나 아이템 V15 (Perfect Hide & Seek)</title>
+    <title>사르디나 아이템 V16 (Layer Fix)</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* 1. 기본 설정 */
@@ -16,104 +16,131 @@
         }
 
         /* =========================================
-           ✨ NEW: 리얼 숨바꼭질 폴딩 시스템
+           ✨ NEW: 3중 레이어 코너 시스템
         ========================================= */
         
-        /* 전체 인터랙션 영역 (왼쪽 상단 고정) */
         #corner-interaction-wrapper {
             position: fixed;
             top: 0; left: 0;
-            width: 100px; height: 100px; /* 클릭 감지 영역 */
+            width: 150px; height: 150px; /* 클릭 감지 영역 넉넉하게 */
             z-index: 2000; cursor: pointer;
         }
 
-        /* 1) 접힌 종이 귀 (The Fold) - 항상 이모지보다 위에 있어야 함(초기) */
-        .paper-fold {
+        /* --- Layer 1: The Hole (접혀서 생긴 빈 공간) --- */
+        /* 배경보다 어두운 색으로 처리하여 '파인' 느낌을 줌 */
+        .corner-hole {
             position: absolute;
             top: 0; left: 0;
-            z-index: 5; /* 이모지(1)보다 위 */
+            z-index: 1; /* 가장 아래 */
             
-            /* CSS 삼각형 만들기 트릭 */
-            width: 0; 
-            height: 0;
+            width: 0; height: 0;
             border-style: solid;
             
             /* 초기 크기: 60px */
-            /* border-bottom: 색상(뒷면), border-left: 투명 */
-            /* 이렇게 하면 우하향 대각선으로 접힌 삼각형이 나옴 */
-            border-width: 0 0 60px 60px;
-            border-color: transparent transparent #bbc4cc transparent; /* #bbc4cc: 종이 뒷면 색상 */
-            
-            /* 입체감을 위한 그림자 (종이가 붕 떠있는 느낌) */
-            filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.3));
+            border-width: 60px 60px 0 0;
+            /* 위쪽과 왼쪽은 어두운 색(빈 공간), 나머지는 투명 */
+            border-color: #c0c0c0 transparent transparent transparent; 
             
             transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-
-        /* 열렸을 때: 종이가 더 많이 접힘 */
-        #corner-interaction-wrapper.is-open .paper-fold {
-            border-width: 0 0 110px 110px; /* 크기 커짐 */
-            filter: drop-shadow(5px 5px 8px rgba(0,0,0,0.4));
+        
+        /* 열렸을 때: 구멍도 커짐 */
+        #corner-interaction-wrapper.is-open .corner-hole {
+            border-width: 120px 120px 0 0;
+            border-color: #b0b0b0 transparent transparent transparent; /* 조금 더 깊은 색 */
         }
 
 
-        /* 2) 숨겨진 이모지 (Hidden Item) */
+        /* --- Layer 2: The Emoji (숨겨진 아이템) --- */
         .hidden-emoji-wrapper {
             position: absolute;
-            /* 위치: 접힌 삼각형 안쪽에 위치하도록 조정 */
-            top: 5px; left: 5px;
+            top: 0; left: 0;
             
-            /* ✨ 핵심: 초기에는 종이(5)보다 낮은 레이어 */
-            z-index: 1; 
+            /* ✨ 핵심: 초기에는 Hole(1)보다 위, Flap(10)보다 아래 */
+            z-index: 5; 
             
-            /* 살짝만 보이게 회전 및 축소 */
-            transform: translate(0, 0) rotate(-15deg) scale(0.8);
+            /* 초기 위치: 종이 틈새에 숨어있음 (크기 0.5) */
+            transform: translate(5px, 5px) rotate(-10deg) scale(0.5);
+            opacity: 0.8;
+            pointer-events: none;
             
-            /* 클릭 방지 (종이가 닫혀있을 땐 종이를 클릭해야 하므로) */
-            pointer-events: none; 
-            
-            /* 애니메이션 설정 */
-            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            /* z-index 변경에 딜레이를 주어 종이가 다 열린 뒤 튀어나오게 함 */
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s linear 0.2s;
         }
 
         /* 열렸을 때: 이모지가 튀어나옴 */
         #corner-interaction-wrapper.is-open .hidden-emoji-wrapper {
-            /* ✨ 핵심: 종이보다 높은 레이어로 점프! */
-            z-index: 10; 
+            /* ✨ 핵심: Flap(10)보다 위로 올라옴! */
+            z-index: 20; 
             
-            pointer-events: auto; /* 클릭 가능 */
-            cursor: pointer;
+            pointer-events: auto; cursor: pointer; opacity: 1;
             
-            /* 종이 밖으로 확 튀어나오며 커짐 (1/2 크기 유지 요청 반영 -> scale 0.6~0.7 정도가 적당) */
-            transform: translate(60px, 60px) rotate(10deg) scale(0.7); 
+            /* ✨ 크기 및 위치 조정: 
+               scale(0.65) -> 너무 크지 않게 조정 (요청사항 반영)
+               translate(50px, 50px) -> 종이 덮개 밖으로 이동
+            */
+            transform: translate(50px, 50px) rotate(10deg) scale(0.65);
+            
+            /* 닫힐 때는 z-index가 즉시 뒤로 숨음 */
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s linear 0s;
         }
 
         #hiddenEmoji {
             font-size: 3.5rem;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25));
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); /* 그림자 */
             display: block;
         }
-        #hiddenEmoji:hover {
-            animation: shake 0.5s ease-in-out infinite;
+        #hiddenEmoji:hover { animation: shake 0.5s ease-in-out infinite; }
+
+
+        /* --- Layer 3: The Flap (접힌 종이 뒷면) --- */
+        .paper-flap {
+            position: absolute;
+            top: 0; left: 0;
+            
+            /* ✨ 핵심: 초기에는 이모지(5)를 덮고 있음 */
+            z-index: 10; 
+            
+            width: 0; height: 0;
+            border-style: solid;
+            
+            /* 초기 크기: Hole과 일치 (60px) */
+            /* border-bottom과 border-right 이용 -> 우하향 삼각형 생성 */
+            border-width: 0 60px 60px 0;
+            /* 종이 뒷면 색상 (배경보다 약간 밝거나 다르게) */
+            border-color: transparent #d1d9e0 transparent transparent; 
+            
+            /* 그림자: 종이가 붕 떠있는 느낌 */
+            filter: drop-shadow(3px 3px 4px rgba(0,0,0,0.2));
+            
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            pointer-events: none; /* 클릭은 wrapper가 받음 */
         }
+
+        /* 열렸을 때: 덮개가 커짐 */
+        #corner-interaction-wrapper.is-open .paper-flap {
+            /* Hole 크기와 일치하게 커짐 */
+            border-width: 0 120px 120px 0;
+            filter: drop-shadow(5px 5px 8px rgba(0,0,0,0.3));
+        }
+
+
+        /* =========================================
+           기타 스타일 (유지)
+        ========================================= */
         @keyframes shake {
             0% { transform: rotate(0deg); }
             25% { transform: rotate(-10deg); }
             75% { transform: rotate(10deg); }
             100% { transform: rotate(0deg); }
         }
-
-
-        /* =========================================
-           기존 스타일 (유지)
-        ========================================= */
+        
         .item-container { 
             display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 800px;
             opacity: 0.2; pointer-events: none; margin-top: 50px;
         }
         .item { font-size: 2.5rem; transition: transform 0.1s; filter: grayscale(100%); }
 
-        /* 모달 스타일 */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.4); z-index: 3000; justify-content: center; align-items: center;
@@ -167,17 +194,19 @@
 
     <div id="corner-interaction-wrapper" onclick="togglePaper()">
         
+        <div class="paper-flap"></div>
+
         <div class="hidden-emoji-wrapper" onclick="onHiddenEmojiClick(event)">
             <span id="hiddenEmoji">❓</span>
         </div>
 
-        <div class="paper-fold"></div>
+        <div class="corner-hole"></div>
 
     </div>
 
 
     <div style="text-align:center; margin-bottom:10px; color:#666;">
-        <p style="font-weight:500; transform:scaleX(0.94);">왼쪽 위 접힌 부분을 확인하세요! 👆</p>
+        <p style="font-weight:500; transform:scaleX(0.94);">왼쪽 위 모서리를 확인하세요! 👆</p>
     </div>
 
     <div class="item-container" id="backgroundList"></div>
@@ -228,31 +257,22 @@
         const cornerWrapper = document.getElementById('corner-interaction-wrapper');
         const hiddenEmojiSpan = document.getElementById('hiddenEmoji');
 
-        // 초기화
         function initHiddenItem() {
             const randomIndex = Math.floor(Math.random() * itemsData.length);
             currentHiddenItem = itemsData[randomIndex];
             hiddenEmojiSpan.innerText = currentHiddenItem.icon;
         }
 
-        // 종이 토글 (Click Paper)
         function togglePaper() {
-            // 이모지 래퍼에 z-index 변화는 CSS Transition으로 처리됨
             cornerWrapper.classList.toggle('is-open');
         }
 
-        // 이모지 클릭 (Click Emoji)
         function onHiddenEmojiClick(event) {
-            // 부모(종이) 클릭 방지
             event.stopPropagation(); 
-            
-            // 만약 종이가 열려있지 않다면(혹은 이모지가 아직 뒤에 있다면) 클릭 무시 가능
-            // 하지만 pointer-events로 제어 중이라 괜찮음
             if (!currentHiddenItem) return;
             openModal(currentHiddenItem.title, currentHiddenItem.icon, currentHiddenItem.desc);
         }
 
-        // 모달 열기
         function openModal(title, icon, desc) {
             const modal = document.getElementById('itemModal');
             document.getElementById('modalTitle').innerText = title;
@@ -262,16 +282,13 @@
             modal.style.display = 'flex';
         }
 
-        // 모달 닫기
         function closeModal() {
             document.getElementById('itemModal').style.display = 'none';
             resetPaperState();
         }
 
-        // 상태 초기화
         function resetPaperState() {
             cornerWrapper.classList.remove('is-open');
-            // 애니메이션 시간(0.4~0.5s) 후 아이템 교체
             setTimeout(() => {
                 initHiddenItem();
             }, 500);
@@ -285,7 +302,6 @@
 
         window.onload = function() {
             initHiddenItem();
-            // 배경 생성
             const bgList = document.getElementById('backgroundList');
             itemsData.forEach(item => {
                 const div = document.createElement('div');
@@ -297,3 +313,4 @@
     </script>
 </body>
 </html>
+
