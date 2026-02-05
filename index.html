@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사르디나의 기억 V30 (Animation Update)</title>
+    <title>사르디나의 기억 V31 (Tistory Logic Update)</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* 1. 기본 설정 */
@@ -27,6 +27,13 @@
             top: 0; left: 0;
             width: 90px; height: 90px;
             z-index: 2000; cursor: pointer;
+            transition: pointer-events 0s linear 0.5s; /* 클릭 방지 타이밍 */
+        }
+
+        /* 완전히 펴진 상태 (Flat State) - 클릭 불가 */
+        #corner-interaction-wrapper.is-flat {
+            pointer-events: none;
+            cursor: default;
         }
 
         /* Layer 1: Hole */
@@ -38,15 +45,21 @@
             border-style: solid;
             border-width: 45px 45px 0 0;
             border-color: #dcdcdc transparent transparent transparent; 
-            transition: border-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: border-width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        #corner-interaction-wrapper:not(.is-open) .corner-hole {
+        #corner-interaction-wrapper:not(.is-open):not(.is-flat) .corner-hole {
             animation: beckon 3s ease-in-out infinite;
         }
+        /* 열렸을 때 */
         #corner-interaction-wrapper.is-open .corner-hole {
             border-width: 72px 72px 0 0;
             border-color: #d0d0d0; 
             transform: translate(0, 0); 
+        }
+        /* 💡 완전히 펴졌을 때 (흔적 없이 사라짐) */
+        #corner-interaction-wrapper.is-flat .corner-hole {
+            border-width: 0;
+            border-color: transparent;
         }
 
         /* Layer 2: Emoji */
@@ -66,13 +79,13 @@
             font-size: 2.6rem;
             filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
             display: block;
-            transition: all 0.2s ease; /* 기본 트랜지션 추가 */
+            transition: all 0.2s ease; 
         }
         
-        /* ✨ 추가된 코드: 아이템 퇴장 애니메이션 */
+        /* 아이템 퇴장 애니메이션 */
         .emoji-exit {
             opacity: 0 !important;
-            transform: scale(0.1) !important; /* 작아지면서 사라짐 */
+            transform: scale(0.1) !important; 
         }
 
         /* Layer 3: Flap */
@@ -84,18 +97,33 @@
             clip-path: polygon(100% 0, 0 100%, 100% 100%);
             background: linear-gradient(135deg, #ffffff 30%, #e8e8e8 100%);
             filter: drop-shadow(-2px -2px 3px rgba(0,0,0,0.1));
-            transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
-                        height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                        height 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
             pointer-events: none;
             border-bottom-right-radius: 3px; 
         }
-        #corner-interaction-wrapper:not(.is-open) .paper-flap {
+        #corner-interaction-wrapper:not(.is-open):not(.is-flat) .paper-flap {
             animation: beckon 3s ease-in-out infinite;
         }
+        /* 열렸을 때 */
         #corner-interaction-wrapper.is-open .paper-flap {
             width: 72px; height: 72px; 
             filter: drop-shadow(-3px -3px 6px rgba(0,0,0,0.2));
             transform: translate(0, 0);
+        }
+        /* 💡 완전히 펴졌을 때 (사이즈 0으로 축소) */
+        #corner-interaction-wrapper.is-flat .paper-flap {
+            width: 0; height: 0;
+            filter: none;
+        }
+
+        /* 안내 문구 영역 */
+        #guideTextWrapper {
+            text-align: center; margin-bottom: 10px; color: #888;
+            transition: opacity 0.5s ease;
+        }
+        #guideTextWrapper.fade-out {
+            opacity: 0; pointer-events: none;
         }
 
         /* 기타 스타일 */
@@ -161,13 +189,13 @@
         <div class="corner-hole"></div>
     </div>
 
-    <div style="text-align:center; margin-bottom:10px; color:#888;">
+    <div id="guideTextWrapper">
         <p style="font-size:0.8rem; font-weight:500; transform:scaleX(0.94);">왼쪽 위 모서리를 클릭해보세요! 👆</p>
     </div>
 
     <div class="item-container" id="backgroundList"></div>
 
-    <div id="itemModal" class="modal-overlay" onclick="closeModalOutside(event)">
+    <div id="itemModal" class="modal-overlay">
         <div class="modal-frame">
             <div class="modal-header-area">
                 <span id="modalTitle">아이템 이름</span>
@@ -212,6 +240,7 @@
         const seenItems = new Set();
         const cornerWrapper = document.getElementById('corner-interaction-wrapper');
         const hiddenEmojiSpan = document.getElementById('hiddenEmoji');
+        const guideTextWrapper = document.getElementById('guideTextWrapper');
 
         function initHiddenItem() {
             const weightedPool = [];
@@ -227,20 +256,25 @@
         }
 
         function togglePaper() {
-            if (cornerWrapper.classList.contains('is-open')) return;
+            // 이미 펴진 상태(.is-flat)거나 열린 상태라면 클릭 무시
+            if (cornerWrapper.classList.contains('is-open') || cornerWrapper.classList.contains('is-flat')) return;
+            
             cornerWrapper.classList.add('is-open');
+
+            // 안내 문구 사라지게 처리
+            guideTextWrapper.classList.add('fade-out');
 
             if (currentHiddenItem) {
                 seenItems.add(currentHiddenItem.title);
             }
 
-            // 💡 0.6초 뒤에 아이템 사라짐 (모달 뜨기 직전)
+            // 아이템 사라짐 (0.6초)
             setTimeout(() => {
                 const emojiEl = document.getElementById('hiddenEmoji');
                 if(emojiEl) emojiEl.classList.add('emoji-exit');
             }, 600);
 
-            // 💡 0.7초 뒤에 모달 오픈
+            // 모달 오픈 (0.7초)
             setTimeout(() => {
                 if (currentHiddenItem) {
                     const index = itemsData.indexOf(currentHiddenItem) + 1;
@@ -261,21 +295,17 @@
 
         function closeModal() {
             document.getElementById('itemModal').style.display = 'none';
-            resetPaperState();
+            flattenPaper(); // 💡 닫을 때 종이를 완전히 폄
         }
 
-        function resetPaperState() {
-            cornerWrapper.classList.remove('is-open');
+        function flattenPaper() {
+            // 💡 종이를 평평하게 펴는 상태로 전환
+            cornerWrapper.classList.remove('is-open'); // 열림 상태 제거
+            cornerWrapper.classList.add('is-flat');    // 평평함 상태 추가 (Hole/Flap 크기 0)
             
-            // 💡 초기화 시 사라짐 효과 클래스 제거
-            const emojiEl = document.getElementById('hiddenEmoji');
-            if(emojiEl) emojiEl.classList.remove('emoji-exit');
-
-            setTimeout(() => { initHiddenItem(); }, 500);
-        }
-
-        function closeModalOutside(event) {
-            if (event.target === document.getElementById('itemModal')) { closeModal(); }
+            // 주의: .emoji-exit 클래스는 제거하지 않음 (아이템 사라진 상태 유지)
+            
+            // 다음 아이템 세팅 로직(initHiddenItem) 호출하지 않음 (새로고침 전까지 1회성)
         }
 
         window.onload = function() {
@@ -291,4 +321,3 @@
     </script>
 </body>
 </html>
-
