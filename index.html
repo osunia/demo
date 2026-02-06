@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사르디나의 기억 V31 (Tistory Logic Update)</title>
+    <title>사르디나의 기억 V32 (Local Storage & Probability Logic)</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* 1. 기본 설정 */
@@ -212,6 +212,7 @@
     </div>
 
     <script>
+        // ✨ 업데이트된 본문 내용 반영
         const itemsData = [
             { title: '낡은 바구니', icon: '🧺', desc: '거친 파도를 넘어 가까스로 해변에 닿았던 작은 요람. 짠 바다 내음 대신 누군가의 품 같은 포근한 햇살 냄새가 깊게 배어 있다.' },
             { title: '오렌지 주스', icon: '🍊', desc: '숙취에 시달리는 애송이에게 무심한 듯 건넨 음료. 어서 정신 차리고 일이나 하라는 무언의 압박과, 그 뒤에 숨겨진 걱정이 동시에 느껴진다.' },
@@ -237,19 +238,47 @@
         ];
 
         let currentHiddenItem = null;
-        const seenItems = new Set();
+        const STORAGE_KEY = 'sardina_collected_items'; // 💾 로컬 스토리지 키
         const cornerWrapper = document.getElementById('corner-interaction-wrapper');
         const hiddenEmojiSpan = document.getElementById('hiddenEmoji');
         const guideTextWrapper = document.getElementById('guideTextWrapper');
 
+        // 💡 로컬 스토리지에서 본 아이템 목록 가져오기
+        function getSeenItems() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        // 💡 아이템을 봤다고 저장하기
+        function markItemAsSeen(title) {
+            const seen = getSeenItems();
+            if (!seen.includes(title)) {
+                seen.push(title);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(seen));
+            }
+        }
+
         function initHiddenItem() {
+            let seenList = getSeenItems();
+
+            // 🚀 모든 아이템(21개)을 다 봤다면 리셋! (다시 순환)
+            if (seenList.length >= itemsData.length) {
+                seenList = [];
+                localStorage.removeItem(STORAGE_KEY);
+            }
+
             const weightedPool = [];
             itemsData.forEach(item => {
-                const weight = seenItems.has(item.title) ? 1 : 50;
+                const isSeen = seenList.includes(item.title);
+                // 💡 안 본 아이템: 가중치 100 (높은 확률)
+                // 💡 본 아이템: 가중치 1 (매우 낮은 확률)
+                const weight = isSeen ? 1 : 100;
+                
                 for(let i=0; i < weight; i++) {
                     weightedPool.push(item);
                 }
             });
+
             const randomIndex = Math.floor(Math.random() * weightedPool.length);
             currentHiddenItem = weightedPool[randomIndex];
             hiddenEmojiSpan.innerText = currentHiddenItem.icon;
@@ -265,7 +294,8 @@
             guideTextWrapper.classList.add('fade-out');
 
             if (currentHiddenItem) {
-                seenItems.add(currentHiddenItem.title);
+                // 💾 클릭 시점에 로컬 스토리지에 저장
+                markItemAsSeen(currentHiddenItem.title);
             }
 
             // 아이템 사라짐 (0.6초)
@@ -304,8 +334,6 @@
             cornerWrapper.classList.add('is-flat');    // 평평함 상태 추가 (Hole/Flap 크기 0)
             
             // 주의: .emoji-exit 클래스는 제거하지 않음 (아이템 사라진 상태 유지)
-            
-            // 다음 아이템 세팅 로직(initHiddenItem) 호출하지 않음 (새로고침 전까지 1회성)
         }
 
         window.onload = function() {
@@ -321,3 +349,4 @@
     </script>
 </body>
 </html>
+
